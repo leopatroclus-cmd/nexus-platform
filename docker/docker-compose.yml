@@ -1,0 +1,69 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: nexus_dev_password
+      POSTGRES_DB: nexus_platform
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: postgresql://nexus:nexus_dev_password@postgres:5432/nexus_platform
+      JWT_SECRET: nexus-dev-jwt-secret-change-in-production-min16chars
+      JWT_REFRESH_SECRET: nexus-dev-refresh-secret-change-in-production-min16chars
+      PORT: "4000"
+      CORS_ORIGIN: http://localhost:3000
+      NODE_ENV: production
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - full
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+    depends_on:
+      - api
+    profiles:
+      - full
+
+volumes:
+  pgdata:
+  redisdata:

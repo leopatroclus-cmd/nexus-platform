@@ -1,0 +1,8 @@
+{
+  "name": "@nexus/module-core",
+  "private": true, "version": "0.0.0",
+  "main": "./dist/index.js", "types": "./dist/index.d.ts",
+  "scripts": { "build": "tsc", "dev": "tsc --watch", "type-check": "tsc --noEmit" },
+  "dependencies": { "@nexus/types": "workspace:*" },
+  "devDependencies": { "@nexus/config": "workspace:*", "typescript": "^5.7.0" }
+}

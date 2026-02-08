@@ -1,0 +1,20 @@
+{
+  "name": "@nexus/types",
+  "private": true,
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@nexus/config": "workspace:*",
+    "@types/express": "^5.0.0",
+    "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@nexus/utils",
+  "private": true,
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@nexus/config": "workspace:*",
+    "typescript": "^5.7.0"
+  }
+}
