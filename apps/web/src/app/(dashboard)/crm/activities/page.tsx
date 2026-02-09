@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,13 +36,47 @@ const priorityColors: Record<string, string> = {
 export default function ActivitiesPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ type: 'task', title: '', status: 'pending', priority: 'medium' });
+  const [form, setForm] = useState({ type: 'task', title: '', status: 'pending', priority: 'medium', relatedType: '', relatedId: '', dueDate: '' });
 
   const { items, pagination, page, setPage } = usePaginatedQuery('activities', '/crm/activities');
 
+  const { data: contactsList } = useQuery({
+    queryKey: ['contacts-list'],
+    queryFn: async () => { const { data } = await api.get('/crm/contacts?limit=100'); return data.data; },
+  });
+
+  const { data: companiesList } = useQuery({
+    queryKey: ['companies-list'],
+    queryFn: async () => { const { data } = await api.get('/crm/companies?limit=100'); return data.data; },
+  });
+
+  const { data: dealsList } = useQuery({
+    queryKey: ['deals-list'],
+    queryFn: async () => { const { data } = await api.get('/crm/deals?limit=100'); return data.data; },
+  });
+
+  const entityOptions = useMemo(() => {
+    if (form.relatedType === 'crm_contact') return contactsList?.map((c: any) => ({ id: c.id, label: `${c.firstName} ${c.lastName}` })) || [];
+    if (form.relatedType === 'crm_company') return companiesList?.map((c: any) => ({ id: c.id, label: c.name })) || [];
+    if (form.relatedType === 'crm_deal') return dealsList?.map((d: any) => ({ id: d.id, label: d.title })) || [];
+    return [];
+  }, [form.relatedType, contactsList, companiesList, dealsList]);
+
+  const entityNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    contactsList?.forEach((c: any) => { map[c.id] = `${c.firstName} ${c.lastName}`; });
+    companiesList?.forEach((c: any) => { map[c.id] = c.name; });
+    dealsList?.forEach((d: any) => { map[d.id] = d.title; });
+    return map;
+  }, [contactsList, companiesList, dealsList]);
+
   const createMutation = useMutation({
     mutationFn: (data: any) => api.post('/crm/activities', data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['activities'] }); setShowForm(false); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      setShowForm(false);
+      setForm({ type: 'task', title: '', status: 'pending', priority: 'medium', relatedType: '', relatedId: '', dueDate: '' });
+    },
   });
 
   const columns = [
@@ -73,6 +107,20 @@ export default function ActivitiesPage() {
           {row.original.priority}
         </Badge>
       ),
+    },
+    {
+      accessorKey: 'relatedId',
+      header: 'Related To',
+      cell: ({ row }: any) => {
+        const name = row.original.relatedId ? entityNameMap[row.original.relatedId] : null;
+        if (!name) return <span className="text-muted-foreground">&mdash;</span>;
+        const typeLabel = row.original.relatedType?.replace('crm_', '') || '';
+        return (
+          <span className="text-sm">
+            <span className="text-muted-foreground capitalize">{typeLabel}:</span> {name}
+          </span>
+        );
+      },
     },
     {
       accessorKey: 'dueDate',
@@ -106,7 +154,15 @@ export default function ActivitiesPage() {
             <CardTitle className="font-serif text-xl">New Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(form); }} className="grid gap-5 sm:grid-cols-2">
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              createMutation.mutate({
+                ...form,
+                relatedType: form.relatedType || null,
+                relatedId: form.relatedId || null,
+                dueDate: form.dueDate || null,
+              });
+            }} className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Title</Label>
                 <Input className="h-10 rounded-lg bg-secondary/50" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
@@ -137,7 +193,41 @@ export default function ActivitiesPage() {
                   <option value="urgent">Urgent</option>
                 </select>
               </div>
-              <div className="flex items-end gap-3">
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Due Date</Label>
+                <Input
+                  type="date"
+                  className="h-10 rounded-lg bg-secondary/50"
+                  value={form.dueDate}
+                  onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Related Entity Type</Label>
+                <select
+                  className="flex h-10 w-full rounded-lg border border-input bg-secondary/50 px-3.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                  value={form.relatedType}
+                  onChange={(e) => setForm({ ...form, relatedType: e.target.value, relatedId: '' })}
+                >
+                  <option value="">None</option>
+                  <option value="crm_contact">Contact</option>
+                  <option value="crm_company">Company</option>
+                  <option value="crm_deal">Deal</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Related Entity</Label>
+                <select
+                  className="flex h-10 w-full rounded-lg border border-input bg-secondary/50 px-3.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                  value={form.relatedId}
+                  onChange={(e) => setForm({ ...form, relatedId: e.target.value })}
+                  disabled={!form.relatedType}
+                >
+                  <option value="">{form.relatedType ? 'Select...' : 'Choose type first'}</option>
+                  {entityOptions.map((e: any) => <option key={e.id} value={e.id}>{e.label}</option>)}
+                </select>
+              </div>
+              <div className="sm:col-span-2 flex items-end gap-3">
                 <Button
                   type="submit"
                   disabled={createMutation.isPending}

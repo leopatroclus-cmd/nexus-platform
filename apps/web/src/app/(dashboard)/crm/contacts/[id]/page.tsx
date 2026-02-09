@@ -6,7 +6,8 @@ import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Trash2, Mail, Phone, Briefcase, FileText, Activity, Tag } from 'lucide-react';
+import { ArrowLeft, Trash2, Mail, Phone, Briefcase, Building2, FileText, Activity, Tag } from 'lucide-react';
+import Link from 'next/link';
 import { CustomFieldsDisplay } from '@/components/custom-fields-renderer';
 
 export default function ContactDetailPage() {
@@ -44,6 +45,15 @@ export default function ContactDetailPage() {
       const { data } = await api.get(`/crm/activities?relatedType=crm_contact&relatedId=${id}`);
       return data.data;
     },
+  });
+
+  const { data: company } = useQuery({
+    queryKey: ['company', contact?.companyId],
+    queryFn: async () => {
+      const { data } = await api.get(`/crm/companies/${contact.companyId}`);
+      return data.data;
+    },
+    enabled: !!contact?.companyId,
   });
 
   if (isLoading) {
@@ -191,6 +201,34 @@ export default function ContactDetailPage() {
                       <span className="text-muted-foreground/60 font-normal">Not provided</span>
                     )}
                   </p>
+                </div>
+              </div>
+
+              <div
+                className="flex items-start gap-3 rounded-lg bg-secondary/30 p-4 transition-colors hover:bg-secondary/50 animate-fade-in"
+                style={{ animationDelay: '250ms' }}
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/10">
+                  <Building2 className="h-4 w-4 text-violet-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    Company
+                  </p>
+                  {company ? (
+                    <Link
+                      href={`/crm/companies/${contact.companyId}`}
+                      className="text-sm font-medium text-blue-400 hover:underline truncate block"
+                    >
+                      {company.name}
+                    </Link>
+                  ) : (
+                    <p className="text-sm font-medium truncate">
+                      <span className="text-muted-foreground/60 font-normal">
+                        {contact.companyId ? 'Loading...' : 'No company'}
+                      </span>
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

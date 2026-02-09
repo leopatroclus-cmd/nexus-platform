@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,28 @@ export default function DealsPage() {
     queryKey: ['deals'],
     queryFn: async () => { const { data } = await api.get('/crm/deals?limit=100'); return data.data; },
   });
+
+  const { data: companies } = useQuery({
+    queryKey: ['companies-list'],
+    queryFn: async () => { const { data } = await api.get('/crm/companies?limit=100'); return data.data; },
+  });
+
+  const { data: contacts } = useQuery({
+    queryKey: ['contacts-list'],
+    queryFn: async () => { const { data } = await api.get('/crm/contacts?limit=100'); return data.data; },
+  });
+
+  const companyMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    companies?.forEach((c: any) => { map[c.id] = c.name; });
+    return map;
+  }, [companies]);
+
+  const contactMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    contacts?.forEach((c: any) => { map[c.id] = `${c.firstName} ${c.lastName}`; });
+    return map;
+  }, [contacts]);
 
   const moveMutation = useMutation({
     mutationFn: ({ dealId, stageId }: { dealId: string; stageId: string }) =>
@@ -75,7 +97,7 @@ export default function DealsPage() {
       </div>
 
       {/* Deal Form */}
-      {showForm && <DealForm stages={stages} onClose={() => setShowForm(false)} />}
+      {showForm && <DealForm stages={stages} companies={companies} contacts={contacts} onClose={() => setShowForm(false)} />}
 
       {/* Kanban View */}
       {view === 'kanban' && stages && (
@@ -109,6 +131,16 @@ export default function DealsPage() {
                           {deal.value && (
                             <p className="text-sm text-muted-foreground mt-1">{formatCurrency(parseFloat(deal.value))}</p>
                           )}
+                          {(deal.companyId || deal.contactId) && (
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              {deal.companyId && companyMap[deal.companyId] && (
+                                <span className="text-[11px] text-muted-foreground bg-secondary/50 rounded px-1.5 py-0.5">{companyMap[deal.companyId]}</span>
+                              )}
+                              {deal.contactId && contactMap[deal.contactId] && (
+                                <span className="text-[11px] text-muted-foreground bg-secondary/50 rounded px-1.5 py-0.5">{contactMap[deal.contactId]}</span>
+                              )}
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     ))}
@@ -138,6 +170,8 @@ export default function DealsPage() {
               <tr className="border-b border-border/30 bg-secondary/20">
                 <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Title</th>
                 <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Value</th>
+                <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Company</th>
+                <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contact</th>
                 <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Stage</th>
               </tr>
             </thead>
@@ -148,6 +182,8 @@ export default function DealsPage() {
                   <tr key={deal.id} className="border-b border-border/30 hover:bg-primary/[0.03] transition-colors">
                     <td className="px-4 py-3 text-sm font-medium">{deal.title}</td>
                     <td className="px-4 py-3 text-sm tabular-nums">{deal.value ? formatCurrency(parseFloat(deal.value)) : '\u2014'}</td>
+                    <td className="px-4 py-3 text-sm">{deal.companyId ? companyMap[deal.companyId] || '\u2014' : '\u2014'}</td>
+                    <td className="px-4 py-3 text-sm">{deal.contactId ? contactMap[deal.contactId] || '\u2014' : '\u2014'}</td>
                     <td className="px-4 py-3 text-sm">
                       <Badge className="border-blue-500/20 bg-blue-500/10 text-blue-400">{stage?.name || '\u2014'}</Badge>
                     </td>
@@ -162,9 +198,15 @@ export default function DealsPage() {
   );
 }
 
-function DealForm({ stages, onClose }: { stages: any[]; onClose: () => void }) {
+function DealForm({ stages, companies, contacts, onClose }: { stages: any[]; companies: any[]; contacts: any[]; onClose: () => void }) {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState({ title: '', value: '', stageId: stages?.[0]?.id || '', currency: 'USD' });
+  const [form, setForm] = useState({ title: '', value: '', stageId: stages?.[0]?.id || '', currency: 'USD', companyId: '', contactId: '' });
+
+  const filteredContacts = useMemo(() => {
+    if (!contacts) return [];
+    if (!form.companyId) return contacts;
+    return contacts.filter((c: any) => c.companyId === form.companyId || !c.companyId);
+  }, [contacts, form.companyId]);
 
   const mutation = useMutation({
     mutationFn: (data: any) => api.post('/crm/deals', data),
@@ -177,7 +219,15 @@ function DealForm({ stages, onClose }: { stages: any[]; onClose: () => void }) {
         <CardTitle className="font-serif text-xl">New Deal</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={(e) => { e.preventDefault(); mutation.mutate({ ...form, value: parseFloat(form.value) || undefined }); }} className="grid gap-5 sm:grid-cols-2">
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          mutation.mutate({
+            ...form,
+            value: parseFloat(form.value) || undefined,
+            companyId: form.companyId || null,
+            contactId: form.contactId || null,
+          });
+        }} className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-2">
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Title</Label>
             <Input className="h-10 rounded-lg bg-secondary/50" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
@@ -194,6 +244,28 @@ function DealForm({ stages, onClose }: { stages: any[]; onClose: () => void }) {
               onChange={(e) => setForm({ ...form, stageId: e.target.value })}
             >
               {stages?.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company</Label>
+            <select
+              className="flex h-10 w-full rounded-lg border border-input bg-secondary/50 px-3.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+              value={form.companyId}
+              onChange={(e) => setForm({ ...form, companyId: e.target.value })}
+            >
+              <option value="">No company</option>
+              {companies?.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contact</Label>
+            <select
+              className="flex h-10 w-full rounded-lg border border-input bg-secondary/50 px-3.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+              value={form.contactId}
+              onChange={(e) => setForm({ ...form, contactId: e.target.value })}
+            >
+              <option value="">No contact</option>
+              {filteredContacts?.map((c: any) => <option key={c.id} value={c.id}>{c.firstName} {c.lastName}</option>)}
             </select>
           </div>
           <div className="flex items-end gap-3">

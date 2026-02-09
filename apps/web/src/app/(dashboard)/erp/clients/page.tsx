@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,13 +9,14 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus } from 'lucide-react';
+import { Plus, ArrowRightLeft } from 'lucide-react';
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
 import { CustomFieldsRenderer } from '@/components/custom-fields-renderer';
 
 export default function ClientsPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [showConvert, setShowConvert] = useState(false);
   const [form, setForm] = useState({ name: '', type: 'customer', currency: 'USD' });
   const [customData, setCustomData] = useState<Record<string, unknown>>({});
 
@@ -24,6 +25,20 @@ export default function ClientsPage() {
   const createMutation = useMutation({
     mutationFn: (data: any) => api.post('/erp/clients', data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['erp-clients'] }); setShowForm(false); },
+  });
+
+  const { data: crmCompanies } = useQuery({
+    queryKey: ['companies-list'],
+    queryFn: async () => { const { data } = await api.get('/crm/companies?limit=100'); return data.data; },
+    enabled: showConvert,
+  });
+
+  const convertMutation = useMutation({
+    mutationFn: (crmCompanyId: string) => api.post('/erp/clients/convert-from-crm', { crmCompanyId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['erp-clients'] });
+      setShowConvert(false);
+    },
   });
 
   const columns = [
@@ -49,10 +64,56 @@ export default function ClientsPage() {
           <h1 className="font-serif text-3xl">Clients</h1>
           <p className="text-muted-foreground mt-1">Manage your customers and vendors</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} className="rounded-lg">
-          <Plus className="mr-2 h-4 w-4" /> Add Client
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => { setShowConvert(!showConvert); setShowForm(false); }}
+            className="rounded-lg border-border/60"
+          >
+            <ArrowRightLeft className="mr-2 h-4 w-4" /> Convert from CRM
+          </Button>
+          <Button onClick={() => { setShowForm(!showForm); setShowConvert(false); }} className="rounded-lg">
+            <Plus className="mr-2 h-4 w-4" /> Add Client
+          </Button>
+        </div>
       </div>
+
+      {/* Convert from CRM */}
+      {showConvert && (
+        <Card className="rounded-xl border-border/60 hover:border-border transition-colors">
+          <CardHeader>
+            <CardTitle className="font-serif text-xl">Convert CRM Company to Client</CardTitle>
+            <p className="text-sm text-muted-foreground">Select a CRM company to convert into an ERP client.</p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {crmCompanies?.map((company: any) => (
+                <button
+                  key={company.id}
+                  className="flex items-center justify-between rounded-lg border border-border/40 bg-secondary/20 p-3.5 text-left hover:border-border hover:bg-secondary/40 transition-colors"
+                  onClick={() => convertMutation.mutate(company.id)}
+                  disabled={convertMutation.isPending}
+                >
+                  <div>
+                    <p className="text-sm font-medium">{company.name}</p>
+                    {company.industry && <p className="text-xs text-muted-foreground mt-0.5">{company.industry}</p>}
+                  </div>
+                  <ArrowRightLeft className="h-4 w-4 text-muted-foreground shrink-0" />
+                </button>
+              ))}
+              {crmCompanies?.length === 0 && (
+                <p className="text-sm text-muted-foreground col-span-2 py-4 text-center">No CRM companies found.</p>
+              )}
+            </div>
+            {convertMutation.isPending && (
+              <p className="text-sm text-muted-foreground mt-3">Converting...</p>
+            )}
+            <div className="mt-4">
+              <Button variant="outline" className="border-border/60" onClick={() => setShowConvert(false)}>Cancel</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Create Form */}
       {showForm && (

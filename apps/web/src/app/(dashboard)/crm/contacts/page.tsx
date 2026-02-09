@@ -18,17 +18,22 @@ export default function ContactsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', jobTitle: '', status: 'active' });
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', jobTitle: '', status: 'active', companyId: '' });
   const [customData, setCustomData] = useState<Record<string, unknown>>({});
 
   const { items, pagination, search, setSearch, page, setPage, isLoading } = usePaginatedQuery('contacts', '/crm/contacts');
 
+  const { data: companies } = useQuery({
+    queryKey: ['companies-list'],
+    queryFn: async () => { const { data } = await api.get('/crm/companies?limit=100'); return data.data; },
+  });
+
   const createMutation = useMutation({
-    mutationFn: (data: any) => api.post('/api/crm/contacts', data),
+    mutationFn: (data: any) => api.post('/crm/contacts', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       setShowForm(false);
-      setForm({ firstName: '', lastName: '', email: '', phone: '', jobTitle: '', status: 'active' });
+      setForm({ firstName: '', lastName: '', email: '', phone: '', jobTitle: '', status: 'active', companyId: '' });
       setCustomData({});
     },
   });
@@ -38,6 +43,14 @@ export default function ContactsPage() {
     { accessorKey: 'email', header: 'Email' },
     { accessorKey: 'phone', header: 'Phone' },
     { accessorKey: 'jobTitle', header: 'Job Title' },
+    {
+      accessorKey: 'companyId',
+      header: 'Company',
+      cell: ({ row }: any) => {
+        const company = companies?.find((c: any) => c.id === row.original.companyId);
+        return company ? company.name : <span className="text-muted-foreground">&mdash;</span>;
+      },
+    },
     { accessorKey: 'status', header: 'Status', cell: ({ row }: any) => (
       <Badge variant={row.original.status === 'active' ? 'success' : 'secondary'}>{row.original.status}</Badge>
     )},
@@ -84,7 +97,7 @@ export default function ContactsPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                createMutation.mutate({ ...form, customData });
+                createMutation.mutate({ ...form, companyId: form.companyId || null, customData });
               }}
               className="grid gap-5 sm:grid-cols-2"
             >
@@ -145,6 +158,19 @@ export default function ContactsPage() {
                   value={form.jobTitle}
                   onChange={(e) => setForm({ ...form, jobTitle: e.target.value })}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Company
+                </Label>
+                <select
+                  className="flex h-10 w-full rounded-lg border border-input bg-secondary/50 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  value={form.companyId}
+                  onChange={(e) => setForm({ ...form, companyId: e.target.value })}
+                >
+                  <option value="">No company</option>
+                  {companies?.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
               </div>
               <div className="space-y-2">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
