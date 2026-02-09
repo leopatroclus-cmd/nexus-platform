@@ -53,6 +53,20 @@ export default function OrdersPage() {
     enabled: showForm,
   });
 
+  // Resolve the selected client's pricelist
+  const selectedClient = clients?.find((c: any) => c.id === form.clientId);
+  const { data: clientPricelist } = useQuery({
+    queryKey: ['erp-pricelist', selectedClient?.pricelistId],
+    queryFn: async () => { const { data } = await api.get(`/erp/pricelists/${selectedClient.pricelistId}`); return data.data; },
+    enabled: !!selectedClient?.pricelistId,
+  });
+
+  const pricelistPriceMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    clientPricelist?.items?.forEach((item: any) => { map[item.inventoryId] = item.price; });
+    return map;
+  }, [clientPricelist]);
+
   const clientMap = useMemo(() => {
     const map: Record<string, string> = {};
     clients?.forEach((c: any) => { map[c.id] = c.name; });
@@ -95,11 +109,12 @@ export default function OrdersPage() {
   const handleInventorySelect = (index: number, inventoryId: string) => {
     const inv = inventory?.find((i: any) => i.id === inventoryId);
     if (inv) {
+      const pricelistPrice = pricelistPriceMap[inventoryId];
       setLineItems(prev => prev.map((item, i) => i === index ? {
         ...item,
         inventoryId,
         description: inv.name || inv.description || '',
-        unitPrice: String(inv.unitPrice || inv.price || ''),
+        unitPrice: pricelistPrice ?? String(inv.unitPrice || inv.price || ''),
       } : item));
     } else {
       updateLine(index, 'inventoryId', inventoryId);

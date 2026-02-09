@@ -2,6 +2,21 @@ import { pgTable, uuid, varchar, text, boolean, timestamp, jsonb, integer, numer
 import { organizations } from './core';
 import { crmCompanies, crmContacts } from './crm';
 
+// ─── ERP Pricelists ───
+export const erpPricelists = pgTable('erp_pricelists', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orgId: uuid('org_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  currency: varchar('currency', { length: 3 }).notNull().default('USD'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index('erp_pricelists_org_idx').on(table.orgId),
+  uniqueIndex('erp_pricelists_org_name_idx').on(table.orgId, table.name),
+]);
+
 // ─── ERP Clients ───
 export const erpClients = pgTable('erp_clients', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -14,6 +29,7 @@ export const erpClients = pgTable('erp_clients', {
   paymentTerms: varchar('payment_terms', { length: 50 }),
   creditLimit: numeric('credit_limit', { precision: 15, scale: 2 }),
   currency: varchar('currency', { length: 3 }).notNull().default('USD'),
+  pricelistId: uuid('pricelist_id').references(() => erpPricelists.id, { onDelete: 'set null' }),
   crmCompanyId: uuid('crm_company_id').references(() => crmCompanies.id, { onDelete: 'set null' }),
   crmContactId: uuid('crm_contact_id').references(() => crmContacts.id, { onDelete: 'set null' }),
   customData: jsonb('custom_data').default({}),
@@ -42,6 +58,17 @@ export const erpInventory = pgTable('erp_inventory', {
 }, (table) => [
   index('erp_inventory_org_idx').on(table.orgId),
   uniqueIndex('erp_inventory_org_sku_idx').on(table.orgId, table.sku),
+]);
+
+// ─── ERP Pricelist Items ───
+export const erpPricelistItems = pgTable('erp_pricelist_items', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  pricelistId: uuid('pricelist_id').notNull().references(() => erpPricelists.id, { onDelete: 'cascade' }),
+  inventoryId: uuid('inventory_id').notNull().references(() => erpInventory.id, { onDelete: 'cascade' }),
+  price: numeric('price', { precision: 15, scale: 2 }).notNull(),
+  minQuantity: numeric('min_quantity', { precision: 15, scale: 4 }).notNull().default('1'),
+}, (table) => [
+  uniqueIndex('erp_pricelist_items_list_inv_idx').on(table.pricelistId, table.inventoryId),
 ]);
 
 // ─── ERP Orders ───

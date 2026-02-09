@@ -12,6 +12,10 @@ export const erpManifest: ModuleManifest = {
     { code: 'erp:clients:create', module: 'erp', resource: 'clients', action: 'create', description: 'Create clients' },
     { code: 'erp:clients:update', module: 'erp', resource: 'clients', action: 'update', description: 'Update clients' },
     { code: 'erp:clients:delete', module: 'erp', resource: 'clients', action: 'delete', description: 'Delete clients' },
+    { code: 'erp:pricelists:read', module: 'erp', resource: 'pricelists', action: 'read', description: 'View pricelists' },
+    { code: 'erp:pricelists:create', module: 'erp', resource: 'pricelists', action: 'create', description: 'Create pricelists' },
+    { code: 'erp:pricelists:update', module: 'erp', resource: 'pricelists', action: 'update', description: 'Update pricelists' },
+    { code: 'erp:pricelists:delete', module: 'erp', resource: 'pricelists', action: 'delete', description: 'Delete pricelists' },
     { code: 'erp:inventory:read', module: 'erp', resource: 'inventory', action: 'read', description: 'View inventory' },
     { code: 'erp:inventory:create', module: 'erp', resource: 'inventory', action: 'create', description: 'Create items' },
     { code: 'erp:inventory:update', module: 'erp', resource: 'inventory', action: 'update', description: 'Update items' },
@@ -32,6 +36,7 @@ export const erpManifest: ModuleManifest = {
   ],
   navigation: [
     { label: 'Clients', icon: 'Users2', path: '/erp/clients' },
+    { label: 'Pricelists', icon: 'Tags', path: '/erp/pricelists' },
     { label: 'Inventory', icon: 'Package', path: '/erp/inventory' },
     { label: 'Orders', icon: 'ShoppingCart', path: '/erp/orders' },
     { label: 'Invoices', icon: 'FileText', path: '/erp/invoices' },

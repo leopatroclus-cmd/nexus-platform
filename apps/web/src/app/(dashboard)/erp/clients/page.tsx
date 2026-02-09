@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ export default function ClientsPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [showConvert, setShowConvert] = useState(false);
-  const [form, setForm] = useState({ name: '', type: 'customer', currency: 'USD' });
+  const [form, setForm] = useState({ name: '', type: 'customer', currency: 'USD', pricelistId: '' });
   const [customData, setCustomData] = useState<Record<string, unknown>>({});
 
   const { items, pagination, search, setSearch, page, setPage } = usePaginatedQuery('erp-clients', '/erp/clients');
@@ -41,6 +41,17 @@ export default function ClientsPage() {
     },
   });
 
+  const { data: pricelists } = useQuery({
+    queryKey: ['erp-pricelists-list'],
+    queryFn: async () => { const { data } = await api.get('/erp/pricelists?limit=100'); return data.data; },
+  });
+
+  const pricelistMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    pricelists?.forEach((p: any) => { map[p.id] = p.name; });
+    return map;
+  }, [pricelists]);
+
   const columns = [
     { accessorKey: 'name', header: 'Name' },
     {
@@ -53,6 +64,11 @@ export default function ClientsPage() {
       ),
     },
     { accessorKey: 'currency', header: 'Currency' },
+    {
+      accessorKey: 'pricelistId',
+      header: 'Pricelist',
+      cell: ({ row }: any) => row.original.pricelistId ? pricelistMap[row.original.pricelistId] || '\u2014' : '\u2014',
+    },
     { accessorKey: 'taxId', header: 'Tax ID' },
   ];
 
@@ -123,7 +139,7 @@ export default function ClientsPage() {
           </CardHeader>
           <CardContent>
             <form
-              onSubmit={(e) => { e.preventDefault(); createMutation.mutate({ ...form, customData }); }}
+              onSubmit={(e) => { e.preventDefault(); createMutation.mutate({ ...form, pricelistId: form.pricelistId || null, customData }); }}
               className="grid gap-6 sm:grid-cols-3"
             >
               <div className="space-y-2">
@@ -149,6 +165,19 @@ export default function ClientsPage() {
                   <option value="customer">Customer</option>
                   <option value="vendor">Vendor</option>
                   <option value="both">Both</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Pricelist
+                </Label>
+                <select
+                  className="flex h-10 w-full rounded-lg border border-input bg-secondary/50 px-3.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                  value={form.pricelistId}
+                  onChange={(e) => setForm({ ...form, pricelistId: e.target.value })}
+                >
+                  <option value="">Default pricing</option>
+                  {pricelists?.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </div>
               <div className="sm:col-span-3">

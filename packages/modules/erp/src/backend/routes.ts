@@ -8,6 +8,7 @@ import * as invoicesSvc from './services/invoices.service.js';
 import * as paymentsSvc from './services/payments.service.js';
 import * as ledgerSvc from './services/ledger.service.js';
 import * as coaSvc from './services/chart-of-accounts.service.js';
+import * as pricelistsSvc from './services/pricelists.service.js';
 
 export function createErpRouter(db: Database): Router {
   const router = Router();
@@ -294,6 +295,47 @@ export function createErpRouter(db: Database): Router {
     try {
       await coaSvc.deleteAccount(db, req.orgId!, req.params.id);
       res.json({ success: true, message: 'Account deleted' });
+    } catch (e) { next(e); }
+  });
+
+  // ─── Pricelists ───
+  router.get('/pricelists', async (req, res, next) => {
+    try {
+      const result = await pricelistsSvc.listPricelists(db, req.orgId!, {
+        page: parseInt(req.query.page as string) || 1, limit: parseInt(req.query.limit as string) || 25,
+        search: req.query.search as string,
+      });
+      res.json({ success: true, ...result });
+    } catch (e) { next(e); }
+  });
+
+  router.get('/pricelists/:id', async (req, res, next) => {
+    try {
+      const pricelist = await pricelistsSvc.getPricelistById(db, req.orgId!, req.params.id);
+      if (!pricelist) return res.status(404).json({ success: false, error: 'Pricelist not found' });
+      res.json({ success: true, data: pricelist });
+    } catch (e) { next(e); }
+  });
+
+  router.post('/pricelists', async (req, res, next) => {
+    try {
+      const pricelist = await pricelistsSvc.createPricelist(db, req.orgId!, req.body);
+      res.status(201).json({ success: true, data: pricelist });
+    } catch (e) { next(e); }
+  });
+
+  router.put('/pricelists/:id', async (req, res, next) => {
+    try {
+      const pricelist = await pricelistsSvc.updatePricelist(db, req.orgId!, req.params.id, req.body);
+      if (!pricelist) return res.status(404).json({ success: false, error: 'Pricelist not found' });
+      res.json({ success: true, data: pricelist });
+    } catch (e) { next(e); }
+  });
+
+  router.delete('/pricelists/:id', async (req, res, next) => {
+    try {
+      await pricelistsSvc.deletePricelist(db, req.orgId!, req.params.id);
+      res.json({ success: true, message: 'Pricelist deleted' });
     } catch (e) { next(e); }
   });
 
