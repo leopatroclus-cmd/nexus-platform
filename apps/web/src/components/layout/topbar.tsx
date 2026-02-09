@@ -48,7 +48,7 @@ export function Topbar({ onMenuToggle }: { onMenuToggle?: () => void }) {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       try {
-        const { data } = await api.get(`/api/search?q=${encodeURIComponent(query)}`);
+        const { data } = await api.get(`/search?q=${encodeURIComponent(query)}`);
         setResults(data.data);
         setShowResults(true);
       } catch { setResults([]); }
@@ -73,7 +73,7 @@ export function Topbar({ onMenuToggle }: { onMenuToggle?: () => void }) {
 
   async function handleSwitchOrg(orgId: string) {
     try {
-      const { data } = await api.post('/api/auth/switch-org', { orgId });
+      const { data } = await api.post('/auth/switch-org', { orgId });
       switchOrg(data.data.org, data.data.accessToken, data.data.refreshToken);
       window.location.reload();
     } catch { /* ignore */ }

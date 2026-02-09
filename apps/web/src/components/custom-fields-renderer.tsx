@@ -32,7 +32,7 @@ export function CustomFieldsRenderer({ entityType, values, onChange, disabled }:
   const { data: fields } = useQuery<FieldDef[]>({
     queryKey: ['custom-fields', entityType],
     queryFn: async () => {
-      const { data } = await api.get(`/api/custom-fields/${entityType}`);
+      const { data } = await api.get(`/custom-fields/${entityType}`);
       return data.data;
     },
   });
@@ -212,7 +212,7 @@ export function CustomFieldsDisplay({ entityType, values }: { entityType: string
   const { data: fields } = useQuery<FieldDef[]>({
     queryKey: ['custom-fields', entityType],
     queryFn: async () => {
-      const { data } = await api.get(`/api/custom-fields/${entityType}`);
+      const { data } = await api.get(`/custom-fields/${entityType}`);
       return data.data;
     },
   });

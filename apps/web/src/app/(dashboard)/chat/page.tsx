@@ -23,21 +23,21 @@ export default function ChatPage() {
 
   const { data: conversations } = useQuery({
     queryKey: ['conversations'],
-    queryFn: async () => { const { data } = await api.get('/api/chat/conversations'); return data.data; },
+    queryFn: async () => { const { data } = await api.get('/chat/conversations'); return data.data; },
   });
 
   const { data: convDetail } = useQuery({
     queryKey: ['conversation', selectedConv],
     queryFn: async () => {
       if (!selectedConv) return null;
-      const { data } = await api.get(`/api/chat/conversations/${selectedConv}`);
+      const { data } = await api.get(`/chat/conversations/${selectedConv}`);
       return data.data;
     },
     enabled: !!selectedConv,
   });
 
   const sendMutation = useMutation({
-    mutationFn: (content: string) => api.post(`/api/chat/conversations/${selectedConv}/messages`, { content }),
+    mutationFn: (content: string) => api.post(`/chat/conversations/${selectedConv}/messages`, { content }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conversation', selectedConv] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
@@ -46,7 +46,7 @@ export default function ChatPage() {
   });
 
   const createConvMutation = useMutation({
-    mutationFn: () => api.post('/api/chat/conversations', { type: 'general', title: 'New Conversation' }),
+    mutationFn: () => api.post('/chat/conversations', { type: 'general', title: 'New Conversation' }),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setSelectedConv(res.data.data.id);

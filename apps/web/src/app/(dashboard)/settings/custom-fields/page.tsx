@@ -81,14 +81,14 @@ export default function CustomFieldsPage() {
   const { data: fields } = useQuery<FieldDef[]>({
     queryKey: ['custom-fields', org?.id, selectedEntity],
     queryFn: async () => {
-      const { data } = await api.get(`/api/custom-fields/${selectedEntity}`);
+      const { data } = await api.get(`/custom-fields/${selectedEntity}`);
       return data.data;
     },
     enabled: !!org?.id,
   });
 
   const createMutation = useMutation({
-    mutationFn: (body: Record<string, unknown>) => api.post('/api/custom-fields', body),
+    mutationFn: (body: Record<string, unknown>) => api.post('/custom-fields', body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-fields'] });
       resetWizard();
@@ -97,7 +97,7 @@ export default function CustomFieldsPage() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
-      api.put(`/api/custom-fields/${id}`, body),
+      api.put(`/custom-fields/${id}`, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-fields'] });
       setEditingField(null);
@@ -105,7 +105,7 @@ export default function CustomFieldsPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/api/custom-fields/${id}`),
+    mutationFn: (id: string) => api.delete(`/custom-fields/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['custom-fields'] }),
   });
 

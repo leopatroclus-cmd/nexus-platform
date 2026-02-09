@@ -34,18 +34,18 @@ export default function RolesPage() {
 
   const { data: roles } = useQuery<Role[]>({
     queryKey: ['roles', org?.id],
-    queryFn: async () => { const { data } = await api.get('/api/roles'); return data.data; },
+    queryFn: async () => { const { data } = await api.get('/roles'); return data.data; },
     enabled: !!org?.id,
   });
 
   const { data: allPermissions } = useQuery<Permission[]>({
     queryKey: ['permissions'],
-    queryFn: async () => { const { data } = await api.get('/api/roles/permissions'); return data.data; },
+    queryFn: async () => { const { data } = await api.get('/roles/permissions'); return data.data; },
     enabled: !!org?.id,
   });
 
   const createMutation = useMutation({
-    mutationFn: (name: string) => api.post('/api/roles', { name }),
+    mutationFn: (name: string) => api.post('/roles', { name }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
       setNewRoleName('');
@@ -55,7 +55,7 @@ export default function RolesPage() {
 
   const updatePermsMutation = useMutation({
     mutationFn: ({ roleId, permissionIds }: { roleId: string; permissionIds: string[] }) =>
-      api.put(`/api/roles/${roleId}/permissions`, { permissionIds }),
+      api.put(`/roles/${roleId}/permissions`, { permissionIds }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['roles'] }),
   });
 
