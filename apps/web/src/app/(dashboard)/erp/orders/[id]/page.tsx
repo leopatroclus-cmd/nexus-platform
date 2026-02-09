@@ -27,37 +27,87 @@ export default function OrderDetailPage() {
     },
   });
 
-  if (isLoading) return <div className="text-muted-foreground">Loading...</div>;
-  if (!order) return <div>Order not found</div>;
+  if (isLoading) return <div className="flex items-center justify-center py-20 text-muted-foreground">Loading...</div>;
+  if (!order) return <div className="flex items-center justify-center py-20 text-muted-foreground">Order not found</div>;
+
+  const statusStyles: Record<string, string> = {
+    draft: 'border-border/40 bg-secondary/30 text-muted-foreground',
+    confirmed: 'border-blue-500/20 bg-blue-500/10 text-blue-400',
+    shipped: 'border-amber-500/20 bg-amber-500/10 text-amber-400',
+    delivered: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400',
+    cancelled: 'border-destructive/20 bg-destructive/10 text-destructive',
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Page Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft className="h-4 w-4" /></Button>
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-lg">
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">{order.orderNumber}</h1>
-          <Badge variant="secondary">{order.status}</Badge>
+          <h1 className="font-serif text-3xl">{order.orderNumber}</h1>
+          <div className="mt-1">
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusStyles[order.status] || statusStyles.draft}`}>
+              {order.status}
+            </span>
+          </div>
         </div>
-        <Button onClick={() => convertMutation.mutate()} disabled={convertMutation.isPending}>
+        <Button onClick={() => convertMutation.mutate()} disabled={convertMutation.isPending} className="rounded-lg">
           <FileText className="mr-2 h-4 w-4" /> Convert to Invoice
         </Button>
       </div>
-      <Card>
-        <CardHeader><CardTitle>Line Items</CardTitle></CardHeader>
+
+      {/* Line Items */}
+      <Card className="rounded-xl border-border/60 hover:border-border transition-colors">
+        <CardHeader>
+          <CardTitle className="font-serif text-xl">Line Items</CardTitle>
+        </CardHeader>
         <CardContent>
-          <table className="w-full text-sm">
-            <thead><tr className="border-b"><th className="py-2 text-left">Description</th><th className="py-2 text-right">Qty</th><th className="py-2 text-right">Price</th><th className="py-2 text-right">Total</th></tr></thead>
-            <tbody>
-              {order.items?.map((item: any) => (
-                <tr key={item.id} className="border-b"><td className="py-2">{item.description}</td><td className="py-2 text-right">{item.quantity}</td><td className="py-2 text-right">{formatCurrency(parseFloat(item.unitPrice))}</td><td className="py-2 text-right">{formatCurrency(parseFloat(item.lineTotal))}</td></tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr><td colSpan={3} className="py-2 text-right font-medium">Subtotal</td><td className="py-2 text-right">{formatCurrency(parseFloat(order.subtotal))}</td></tr>
-              <tr><td colSpan={3} className="py-2 text-right font-medium">Tax</td><td className="py-2 text-right">{formatCurrency(parseFloat(order.tax))}</td></tr>
-              <tr className="font-bold"><td colSpan={3} className="py-2 text-right">Total</td><td className="py-2 text-right">{formatCurrency(parseFloat(order.total))}</td></tr>
-            </tfoot>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border/40">
+                  <th className="pb-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Description
+                  </th>
+                  <th className="pb-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Qty
+                  </th>
+                  <th className="pb-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Price
+                  </th>
+                  <th className="pb-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {order.items?.map((item: any) => (
+                  <tr key={item.id} className="border-b border-border/30 hover:bg-primary/[0.03] transition-colors">
+                    <td className="py-3">{item.description}</td>
+                    <td className="py-3 text-right text-muted-foreground">{item.quantity}</td>
+                    <td className="py-3 text-right text-muted-foreground">{formatCurrency(parseFloat(item.unitPrice))}</td>
+                    <td className="py-3 text-right font-medium">{formatCurrency(parseFloat(item.lineTotal))}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-b border-border/20">
+                  <td colSpan={3} className="py-3 text-right text-muted-foreground">Subtotal</td>
+                  <td className="py-3 text-right font-medium">{formatCurrency(parseFloat(order.subtotal))}</td>
+                </tr>
+                <tr className="border-b border-border/20">
+                  <td colSpan={3} className="py-3 text-right text-muted-foreground">Tax</td>
+                  <td className="py-3 text-right font-medium">{formatCurrency(parseFloat(order.tax))}</td>
+                </tr>
+                <tr>
+                  <td colSpan={3} className="pt-3 pb-1 text-right font-bold text-base">Total</td>
+                  <td className="pt-3 pb-1 text-right font-bold text-base">{formatCurrency(parseFloat(order.total))}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </CardContent>
       </Card>
     </div>

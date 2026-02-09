@@ -152,13 +152,18 @@ export default function CustomFieldsPage() {
   const selectedEntityInfo = ENTITY_TYPES.find((e) => e.value === selectedEntity);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Custom Fields</h1>
-          <p className="text-muted-foreground">Add custom data fields to any entity type — no code needed.</p>
+          <h1 className="font-serif text-3xl">Custom Fields</h1>
+          <p className="text-muted-foreground mt-1">
+            Add custom data fields to any entity type -- no code needed.
+          </p>
         </div>
-        <Button onClick={() => setShowWizard(true)}>
+        <Button
+          onClick={() => setShowWizard(true)}
+          className="shadow-[0_0_20px_rgba(var(--primary),0.15)]"
+        >
           <Plus className="mr-2 h-4 w-4" /> Add Field
         </Button>
       </div>
@@ -167,23 +172,29 @@ export default function CustomFieldsPage() {
       <div className="relative">
         <button
           onClick={() => setEntityDropdownOpen(!entityDropdownOpen)}
-          className="flex items-center gap-2 rounded-lg border bg-background px-4 py-2.5 text-sm font-medium hover:bg-muted/50"
+          className="flex items-center gap-2 rounded-lg border border-border/60 bg-secondary/50 px-4 py-2.5 text-sm font-medium transition-colors hover:border-border"
         >
-          <Badge variant="secondary">{selectedEntityInfo?.module}</Badge>
+          <Badge className="border-primary/20 bg-primary/10 text-primary text-[10px]">
+            {selectedEntityInfo?.module}
+          </Badge>
           {selectedEntityInfo?.label}
           <ChevronDown className="ml-1 h-4 w-4 text-muted-foreground" />
         </button>
         {entityDropdownOpen && (
-          <div className="absolute z-10 mt-1 w-64 rounded-lg border bg-background p-1 shadow-lg">
+          <div className="absolute z-10 mt-1.5 w-64 rounded-xl border border-border/60 bg-card p-1.5 shadow-xl">
             {ENTITY_TYPES.map((et) => (
               <button
                 key={et.value}
                 onClick={() => { setSelectedEntity(et.value); setEntityDropdownOpen(false); }}
-                className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm ${
-                  selectedEntity === et.value ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'
+                className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                  selectedEntity === et.value
+                    ? 'bg-primary/10 text-primary'
+                    : 'hover:bg-secondary/50'
                 }`}
               >
-                <Badge variant="secondary" className="text-[10px]">{et.module}</Badge>
+                <Badge className="border-border/40 bg-secondary/50 text-[10px] text-muted-foreground">
+                  {et.module}
+                </Badge>
                 {et.label}
               </button>
             ))}
@@ -193,28 +204,34 @@ export default function CustomFieldsPage() {
 
       {/* Add Field Wizard */}
       {showWizard && (
-        <Card>
+        <Card className="rounded-xl border-border/60">
           <CardHeader>
-            <CardTitle>Add Custom Field</CardTitle>
+            <CardTitle className="font-serif text-xl">Add Custom Field</CardTitle>
             <CardDescription>
               Step {['name', 'type', 'configure', 'settings'].indexOf(wizardStep) + 1} of 4
-              — Adding to <strong>{selectedEntityInfo?.label}</strong>
+              {' '} -- Adding to <strong>{selectedEntityInfo?.label}</strong>
             </CardDescription>
             {/* Step indicators */}
-            <div className="flex gap-1 pt-2">
+            <div className="flex gap-1.5 pt-3">
               {(['name', 'type', 'configure', 'settings'] as WizardStep[]).map((step, i) => (
-                <div key={step} className={`h-1 flex-1 rounded-full ${
-                  ['name', 'type', 'configure', 'settings'].indexOf(wizardStep) >= i
-                    ? 'bg-primary' : 'bg-muted'
-                }`} />
+                <div
+                  key={step}
+                  className={`h-1 flex-1 rounded-full transition-colors ${
+                    ['name', 'type', 'configure', 'settings'].indexOf(wizardStep) >= i
+                      ? 'bg-primary shadow-[0_0_8px_rgba(var(--primary),0.3)]'
+                      : 'bg-muted'
+                  }`}
+                />
               ))}
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5">
             {wizardStep === 'name' && (
               <>
-                <div>
-                  <Label>Field Label</Label>
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Field Label
+                  </Label>
                   <Input
                     placeholder="e.g. Region, Priority Score, Contract End Date..."
                     value={fieldLabel}
@@ -223,21 +240,32 @@ export default function CustomFieldsPage() {
                       if (!fieldKey) setFieldKey(generateKey(e.target.value));
                     }}
                     autoFocus
+                    className="h-10 rounded-lg bg-secondary/50"
                   />
                 </div>
-                <div>
-                  <Label>Machine Key</Label>
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Machine Key
+                  </Label>
                   <Input
                     placeholder="auto_generated_key"
                     value={fieldKey || generateKey(fieldLabel)}
                     onChange={(e) => setFieldKey(e.target.value)}
-                    className="font-mono text-sm"
+                    className="h-10 rounded-lg bg-secondary/50 font-mono text-sm"
                   />
-                  <p className="mt-1 text-xs text-muted-foreground">Used in the API and filters. Auto-generated from the label.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Used in the API and filters. Auto-generated from the label.
+                  </p>
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={resetWizard}>Cancel</Button>
-                  <Button onClick={() => setWizardStep('type')} disabled={!fieldLabel.trim()}>Next</Button>
+                  <Button
+                    onClick={() => setWizardStep('type')}
+                    disabled={!fieldLabel.trim()}
+                    className="shadow-[0_0_20px_rgba(var(--primary),0.15)]"
+                  >
+                    Next
+                  </Button>
                 </div>
               </>
             )}
@@ -251,12 +279,14 @@ export default function CustomFieldsPage() {
                       <button
                         key={ft.value}
                         onClick={() => setFieldType(ft.value)}
-                        className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${
-                          fieldType === ft.value ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
+                        className={`flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all ${
+                          fieldType === ft.value
+                            ? 'border-primary/40 bg-primary/5 shadow-[0_0_15px_rgba(var(--primary),0.08)]'
+                            : 'border-border/60 hover:border-border'
                         }`}
                       >
-                        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted">
-                          <Icon className="h-4 w-4" />
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/50">
+                          <Icon className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div>
                           <div className="text-sm font-medium">{ft.label}</div>
@@ -268,7 +298,12 @@ export default function CustomFieldsPage() {
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setWizardStep('name')}>Back</Button>
-                  <Button onClick={() => setWizardStep('configure')}>Next</Button>
+                  <Button
+                    onClick={() => setWizardStep('configure')}
+                    className="shadow-[0_0_20px_rgba(var(--primary),0.15)]"
+                  >
+                    Next
+                  </Button>
                 </div>
               </>
             )}
@@ -277,12 +312,19 @@ export default function CustomFieldsPage() {
               <>
                 {needsOptions ? (
                   <div className="space-y-3">
-                    <Label>Choices</Label>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Choices
+                    </Label>
                     {options.map((opt, idx) => (
                       <div key={idx} className="flex items-center gap-2">
                         <GripVertical className="h-4 w-4 text-muted-foreground" />
-                        <span className="flex-1 rounded-md border px-3 py-1.5 text-sm">{opt.label}</span>
-                        <button onClick={() => removeOption(idx)} className="text-muted-foreground hover:text-destructive">
+                        <span className="flex-1 rounded-lg border border-border/60 bg-secondary/50 px-3 py-1.5 text-sm">
+                          {opt.label}
+                        </span>
+                        <button
+                          onClick={() => removeOption(idx)}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
                           <X className="h-4 w-4" />
                         </button>
                       </div>
@@ -293,15 +335,21 @@ export default function CustomFieldsPage() {
                         value={newOptionLabel}
                         onChange={(e) => setNewOptionLabel(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && addOption()}
+                        className="h-10 rounded-lg bg-secondary/50"
                       />
-                      <Button variant="outline" onClick={addOption} disabled={!newOptionLabel.trim()}>
+                      <Button
+                        variant="outline"
+                        onClick={addOption}
+                        disabled={!newOptionLabel.trim()}
+                      >
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-lg bg-muted/50 p-6 text-center text-sm text-muted-foreground">
-                    No extra configuration needed for <strong>{FIELD_TYPES.find((t) => t.value === fieldType)?.label}</strong> fields.
+                  <div className="rounded-xl border border-border/60 bg-secondary/30 p-6 text-center text-sm text-muted-foreground">
+                    No extra configuration needed for{' '}
+                    <strong>{FIELD_TYPES.find((t) => t.value === fieldType)?.label}</strong> fields.
                   </div>
                 )}
                 <div className="flex justify-end gap-2">
@@ -309,6 +357,7 @@ export default function CustomFieldsPage() {
                   <Button
                     onClick={() => setWizardStep('settings')}
                     disabled={needsOptions && options.length === 0}
+                    className="shadow-[0_0_20px_rgba(var(--primary),0.15)]"
                   >
                     Next
                   </Button>
@@ -319,52 +368,92 @@ export default function CustomFieldsPage() {
             {wizardStep === 'settings' && (
               <>
                 <div className="space-y-4">
-                  <label className="flex items-center gap-3 rounded-lg border p-3">
-                    <input
-                      type="checkbox"
-                      checked={isRequired}
-                      onChange={(e) => setIsRequired(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
+                  <label className="flex items-center gap-3 rounded-xl border border-border/60 p-4 transition-colors hover:border-border cursor-pointer">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={isRequired}
+                      onClick={() => setIsRequired(!isRequired)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        isRequired ? 'bg-primary shadow-[0_0_12px_rgba(var(--primary),0.3)]' : 'bg-muted'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          isRequired ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
                     <div>
                       <div className="text-sm font-medium">Required</div>
-                      <div className="text-xs text-muted-foreground">Users must fill in this field when creating or editing.</div>
+                      <div className="text-xs text-muted-foreground">
+                        Users must fill in this field when creating or editing.
+                      </div>
                     </div>
                   </label>
-                  <label className="flex items-center gap-3 rounded-lg border p-3">
-                    <input
-                      type="checkbox"
-                      checked={isFilterable}
-                      onChange={(e) => setIsFilterable(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
+                  <label className="flex items-center gap-3 rounded-xl border border-border/60 p-4 transition-colors hover:border-border cursor-pointer">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={isFilterable}
+                      onClick={() => setIsFilterable(!isFilterable)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        isFilterable ? 'bg-primary shadow-[0_0_12px_rgba(var(--primary),0.3)]' : 'bg-muted'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          isFilterable ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
                     <div>
                       <div className="text-sm font-medium">Filterable</div>
-                      <div className="text-xs text-muted-foreground">Allow filtering lists by this field.</div>
+                      <div className="text-xs text-muted-foreground">
+                        Allow filtering lists by this field.
+                      </div>
                     </div>
                   </label>
                 </div>
 
                 {/* Preview */}
-                <div className="rounded-lg border p-4">
-                  <p className="mb-3 text-xs font-semibold uppercase text-muted-foreground">Preview</p>
-                  <div className="space-y-1.5">
-                    <Label>
+                <div className="rounded-xl border border-border/60 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                    Preview
+                  </p>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       {fieldLabel}{isRequired && <span className="text-destructive"> *</span>}
                     </Label>
-                    {fieldType === 'text' && <Input placeholder={`Enter ${fieldLabel.toLowerCase()}...`} disabled />}
-                    {fieldType === 'number' && <Input type="number" placeholder="0" disabled />}
-                    {fieldType === 'date' && <Input type="date" disabled />}
-                    {fieldType === 'email' && <Input type="email" placeholder="name@example.com" disabled />}
-                    {fieldType === 'url' && <Input type="url" placeholder="https://..." disabled />}
-                    {fieldType === 'currency' && <Input type="number" placeholder="0.00" disabled />}
+                    {fieldType === 'text' && (
+                      <Input
+                        placeholder={`Enter ${fieldLabel.toLowerCase()}...`}
+                        disabled
+                        className="h-10 rounded-lg bg-secondary/50"
+                      />
+                    )}
+                    {fieldType === 'number' && (
+                      <Input type="number" placeholder="0" disabled className="h-10 rounded-lg bg-secondary/50" />
+                    )}
+                    {fieldType === 'date' && (
+                      <Input type="date" disabled className="h-10 rounded-lg bg-secondary/50" />
+                    )}
+                    {fieldType === 'email' && (
+                      <Input type="email" placeholder="name@example.com" disabled className="h-10 rounded-lg bg-secondary/50" />
+                    )}
+                    {fieldType === 'url' && (
+                      <Input type="url" placeholder="https://..." disabled className="h-10 rounded-lg bg-secondary/50" />
+                    )}
+                    {fieldType === 'currency' && (
+                      <Input type="number" placeholder="0.00" disabled className="h-10 rounded-lg bg-secondary/50" />
+                    )}
                     {fieldType === 'boolean' && (
                       <div className="flex h-6 w-11 items-center rounded-full bg-muted px-1">
                         <div className="h-4 w-4 rounded-full bg-white" />
                       </div>
                     )}
                     {(fieldType === 'select' || fieldType === 'multiselect') && (
-                      <div className="rounded-md border px-3 py-2 text-sm text-muted-foreground">
+                      <div className="h-10 rounded-lg border border-border/60 bg-secondary/50 px-3.5 flex items-center text-sm text-muted-foreground">
                         {options.length ? options.map((o) => o.label).join(', ') : 'No options defined'}
                       </div>
                     )}
@@ -373,7 +462,11 @@ export default function CustomFieldsPage() {
 
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setWizardStep('configure')}>Back</Button>
-                  <Button onClick={handleCreate} disabled={createMutation.isPending}>
+                  <Button
+                    onClick={handleCreate}
+                    disabled={createMutation.isPending}
+                    className="shadow-[0_0_20px_rgba(var(--primary),0.15)]"
+                  >
                     {createMutation.isPending ? 'Creating...' : 'Create Field'}
                   </Button>
                 </div>
@@ -386,14 +479,19 @@ export default function CustomFieldsPage() {
       {/* Active fields list */}
       <div className="space-y-2">
         {activeFields.length === 0 && !showWizard && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-              <Type className="mb-3 h-10 w-10 text-muted-foreground/50" />
-              <p className="font-medium">No custom fields yet</p>
-              <p className="text-sm text-muted-foreground">
+          <Card className="rounded-xl border-border/60">
+            <CardContent className="flex flex-col items-center justify-center py-14 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-secondary/50 mb-4">
+                <Type className="h-7 w-7 text-muted-foreground/50" />
+              </div>
+              <p className="font-serif text-lg">No custom fields yet</p>
+              <p className="text-sm text-muted-foreground mt-1">
                 Add custom data fields to <strong>{selectedEntityInfo?.label}</strong> to capture the data your business needs.
               </p>
-              <Button className="mt-4" onClick={() => setShowWizard(true)}>
+              <Button
+                className="mt-5 shadow-[0_0_20px_rgba(var(--primary),0.15)]"
+                onClick={() => setShowWizard(true)}
+              >
                 <Plus className="mr-2 h-4 w-4" /> Add Your First Field
               </Button>
             </CardContent>
@@ -401,23 +499,34 @@ export default function CustomFieldsPage() {
         )}
 
         {activeFields.map((field) => (
-          <div key={field.id} className="flex items-center gap-3 rounded-lg border p-3">
+          <div
+            key={field.id}
+            className="flex items-center gap-3 rounded-xl border border-border/60 p-4 transition-colors hover:border-border"
+          >
             <GripVertical className="h-4 w-4 cursor-grab text-muted-foreground" />
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/50">
               {(() => {
                 const Icon = FIELD_TYPES.find((t) => t.value === field.fieldType)?.icon || Type;
-                return <Icon className="h-4 w-4" />;
+                return <Icon className="h-4 w-4 text-muted-foreground" />;
               })()}
             </div>
             <div className="flex-1">
               <div className="text-sm font-medium">{field.fieldLabel}</div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mt-0.5">
                 <span className="font-mono text-xs text-muted-foreground">{field.fieldKey}</span>
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge className="border-border/40 bg-secondary/50 text-[10px] text-muted-foreground">
                   {FIELD_TYPES.find((t) => t.value === field.fieldType)?.label}
                 </Badge>
-                {field.isRequired && <Badge variant="destructive" className="text-[10px]">Required</Badge>}
-                {field.isFilterable && <Badge variant="secondary" className="text-[10px]">Filterable</Badge>}
+                {field.isRequired && (
+                  <Badge className="border-amber-500/20 bg-amber-500/10 text-amber-400 text-[10px]">
+                    Required
+                  </Badge>
+                )}
+                {field.isFilterable && (
+                  <Badge className="border-border/40 bg-secondary/50 text-[10px] text-muted-foreground">
+                    Filterable
+                  </Badge>
+                )}
               </div>
             </div>
 
@@ -426,7 +535,7 @@ export default function CustomFieldsPage() {
                 <Input
                   value={editingField.fieldLabel}
                   onChange={(e) => setEditingField({ ...editingField, fieldLabel: e.target.value })}
-                  className="h-8 w-40"
+                  className="h-8 w-40 rounded-lg bg-secondary/50"
                 />
                 <Button
                   size="sm"
@@ -434,6 +543,7 @@ export default function CustomFieldsPage() {
                     id: field.id,
                     body: { fieldLabel: editingField.fieldLabel, isRequired: editingField.isRequired, isFilterable: editingField.isFilterable },
                   })}
+                  className="shadow-[0_0_20px_rgba(var(--primary),0.15)]"
                 >
                   Save
                 </Button>
@@ -441,12 +551,15 @@ export default function CustomFieldsPage() {
               </div>
             ) : (
               <div className="flex items-center gap-1">
-                <button onClick={() => setEditingField(field)} className="rounded-md p-1.5 hover:bg-muted">
+                <button
+                  onClick={() => setEditingField(field)}
+                  className="rounded-lg p-2 hover:bg-secondary/50 transition-colors"
+                >
                   <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
                 <button
                   onClick={() => deleteMutation.mutate(field.id)}
-                  className="rounded-md p-1.5 hover:bg-destructive/10"
+                  className="rounded-lg p-2 hover:bg-destructive/10 transition-colors"
                 >
                   <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
@@ -459,14 +572,19 @@ export default function CustomFieldsPage() {
       {/* Inactive fields */}
       {inactiveFields.length > 0 && (
         <div>
-          <h3 className="mb-2 text-sm font-medium text-muted-foreground">Deactivated Fields</h3>
-          <div className="space-y-2 opacity-60">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+            Deactivated Fields
+          </h3>
+          <div className="space-y-2 opacity-50">
             {inactiveFields.map((field) => (
-              <div key={field.id} className="flex items-center gap-3 rounded-lg border border-dashed p-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted">
+              <div
+                key={field.id}
+                className="flex items-center gap-3 rounded-xl border border-dashed border-border/60 p-4"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/50">
                   {(() => {
                     const Icon = FIELD_TYPES.find((t) => t.value === field.fieldType)?.icon || Type;
-                    return <Icon className="h-4 w-4" />;
+                    return <Icon className="h-4 w-4 text-muted-foreground" />;
                   })()}
                 </div>
                 <div className="flex-1">

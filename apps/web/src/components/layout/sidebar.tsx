@@ -44,41 +44,46 @@ export function Sidebar() {
   const allItems = navData?.flatMap((m) => m.items) || [];
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-card">
+    <div className="flex h-full w-64 flex-col bg-[hsl(230_22%_6%)] border-r border-border/40">
       {/* Org header */}
-      <div className="flex items-center gap-3 border-b p-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-bold">
+      <div className="flex items-center gap-3 border-b border-border/40 p-4">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-sm font-bold shadow-md shadow-primary/20">
           {org?.name?.[0] || 'N'}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate">{org?.name || 'Nexus'}</p>
-          <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+          <p className="text-sm font-semibold truncate text-foreground">{org?.name || 'Nexus'}</p>
+          <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
         {allItems.map((item: any) => {
           const Icon = iconMap[item.icon] || LayoutDashboard;
           const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
 
           if (item.children) {
             const isExpanded = expandedSections.has(item.label);
+            const hasActiveChild = item.children.some((c: any) => pathname === c.path || pathname.startsWith(c.path + '/'));
             return (
               <div key={item.path}>
                 <button
                   onClick={() => toggleSection(item.label)}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent',
-                    isActive && 'bg-accent',
+                    'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 hover:bg-secondary/60',
+                    (isActive || hasActiveChild) && 'text-foreground',
+                    !isActive && !hasActiveChild && 'text-muted-foreground',
                   )}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span className="flex-1 text-left">{item.label}</span>
-                  <ChevronDown className={cn('h-4 w-4 transition-transform', isExpanded && 'rotate-180')} />
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1 text-left font-medium">{item.label}</span>
+                  <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-200', isExpanded && 'rotate-180')} />
                 </button>
-                {isExpanded && (
-                  <div className="ml-4 mt-1 space-y-1">
+                <div className={cn(
+                  'overflow-hidden transition-all duration-200',
+                  isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0',
+                )}>
+                  <div className="ml-3 mt-0.5 space-y-0.5 border-l border-border/40 pl-3">
                     {item.children.map((child: any) => {
                       const ChildIcon = iconMap[child.icon] || Settings;
                       const childActive = pathname === child.path;
@@ -87,17 +92,19 @@ export function Sidebar() {
                           key={child.path}
                           href={child.path}
                           className={cn(
-                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent',
-                            childActive && 'bg-accent font-medium',
+                            'flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-all duration-200',
+                            childActive
+                              ? 'bg-primary/10 text-primary font-medium'
+                              : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
                           )}
                         >
-                          <ChildIcon className="h-4 w-4" />
+                          <ChildIcon className="h-3.5 w-3.5 shrink-0" />
                           {child.label}
                         </Link>
                       );
                     })}
                   </div>
-                )}
+                </div>
               </div>
             );
           }
@@ -107,22 +114,27 @@ export function Sidebar() {
               key={item.path}
               href={item.path}
               className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent',
-                isActive && 'bg-accent font-medium',
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 group relative',
+                isActive
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
               )}
             >
-              <Icon className="h-4 w-4" />
-              {item.label}
+              {isActive && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-primary shadow-[0_0_8px_hsl(238_83%_67%/0.5)]" />
+              )}
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="font-medium">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
       {/* Logout */}
-      <div className="border-t p-3">
+      <div className="border-t border-border/40 p-3">
         <button
           onClick={() => { logout(); window.location.href = '/auth/login'; }}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
         >
           <LogOut className="h-4 w-4" />
           Sign out

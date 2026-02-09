@@ -28,25 +28,58 @@ export default function OrgSettingsPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Organization Settings</h1>
-      <Card>
-        <CardHeader><CardTitle>General</CardTitle></CardHeader>
+    <div className="space-y-8">
+      <div>
+        <h1 className="font-serif text-3xl">Organization Settings</h1>
+        <p className="text-muted-foreground mt-1">Manage your organization profile and preferences.</p>
+      </div>
+
+      <Card className="rounded-xl border-border/60 transition-colors hover:border-border">
+        <CardHeader>
+          <CardTitle className="font-serif text-xl">General</CardTitle>
+        </CardHeader>
         <CardContent>
-          <form onSubmit={(e) => { e.preventDefault(); updateMutation.mutate({ name }); }} className="space-y-4 max-w-md">
+          <form
+            onSubmit={(e) => { e.preventDefault(); updateMutation.mutate({ name }); }}
+            className="space-y-6 max-w-md"
+          >
             <div className="space-y-2">
-              <Label>Organization Name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Organization Name
+              </Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-10 rounded-lg bg-secondary/50"
+              />
             </div>
             <div className="space-y-2">
-              <Label>Slug</Label>
-              <Input value={orgData?.slug || ''} disabled />
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Slug
+              </Label>
+              <Input
+                value={orgData?.slug || ''}
+                disabled
+                className="h-10 rounded-lg bg-secondary/50"
+              />
             </div>
             <div className="space-y-2">
-              <Label>Plan</Label>
-              <Input value={orgData?.plan || 'free'} disabled />
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Plan
+              </Label>
+              <Input
+                value={orgData?.plan || 'free'}
+                disabled
+                className="h-10 rounded-lg bg-secondary/50"
+              />
             </div>
-            <Button type="submit" disabled={updateMutation.isPending}>Save Changes</Button>
+            <Button
+              type="submit"
+              disabled={updateMutation.isPending}
+              className="shadow-[0_0_20px_rgba(var(--primary),0.15)]"
+            >
+              Save Changes
+            </Button>
           </form>
         </CardContent>
       </Card>

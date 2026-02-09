@@ -76,27 +76,35 @@ export default function RolesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Roles & Permissions</h1>
-          <p className="text-muted-foreground">Manage roles and their permissions for your organization.</p>
+          <h1 className="font-serif text-3xl">Roles & Permissions</h1>
+          <p className="text-muted-foreground mt-1">Manage roles and their permissions for your organization.</p>
         </div>
-        <Button onClick={() => setShowCreate(true)}>
+        <Button
+          onClick={() => setShowCreate(true)}
+          className="shadow-[0_0_20px_rgba(var(--primary),0.15)]"
+        >
           <Plus className="mr-2 h-4 w-4" /> New Role
         </Button>
       </div>
 
       {showCreate && (
-        <Card>
+        <Card className="rounded-xl border-border/60">
           <CardContent className="flex items-center gap-3 pt-6">
             <Input
               placeholder="Role name..."
               value={newRoleName}
               onChange={(e) => setNewRoleName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && newRoleName.trim() && createMutation.mutate(newRoleName.trim())}
+              className="h-10 rounded-lg bg-secondary/50"
             />
-            <Button onClick={() => newRoleName.trim() && createMutation.mutate(newRoleName.trim())} disabled={createMutation.isPending}>
+            <Button
+              onClick={() => newRoleName.trim() && createMutation.mutate(newRoleName.trim())}
+              disabled={createMutation.isPending}
+              className="shadow-[0_0_20px_rgba(var(--primary),0.15)]"
+            >
               Create
             </Button>
             <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
@@ -111,8 +119,10 @@ export default function RolesPage() {
             <button
               key={role.id}
               onClick={() => setSelectedRoleId(role.id)}
-              className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors ${
-                selectedRoleId === role.id ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
+              className={`flex w-full items-center gap-3 rounded-xl border p-3.5 text-left transition-all ${
+                selectedRoleId === role.id
+                  ? 'border-primary/40 bg-primary/5 shadow-[0_0_15px_rgba(var(--primary),0.08)]'
+                  : 'border-border/60 hover:border-border'
               }`}
             >
               <Shield className="h-5 w-5 text-muted-foreground" />
@@ -122,7 +132,11 @@ export default function RolesPage() {
                   {role.permissions?.length || 0} permissions
                 </div>
               </div>
-              {role.isSystem && <Badge variant="secondary">System</Badge>}
+              {role.isSystem && (
+                <Badge className="border-amber-500/20 bg-amber-500/10 text-amber-400 text-xs">
+                  System
+                </Badge>
+              )}
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </button>
           ))}
@@ -130,12 +144,14 @@ export default function RolesPage() {
 
         {/* Permissions editor */}
         {selectedRole ? (
-          <Card>
+          <Card className="rounded-xl border-border/60">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-3 font-serif text-xl">
                 {selectedRole.name}
                 {selectedRole.isSystem && (
-                  <Badge variant="secondary">System Role</Badge>
+                  <Badge className="border-amber-500/20 bg-amber-500/10 text-amber-400 text-xs">
+                    System Role
+                  </Badge>
                 )}
               </CardTitle>
             </CardHeader>
@@ -147,8 +163,10 @@ export default function RolesPage() {
               )}
               {Object.entries(permsByModule).map(([mod, perms]) => (
                 <div key={mod}>
-                  <h3 className="mb-2 text-sm font-semibold uppercase text-muted-foreground">{mod}</h3>
-                  <div className="grid gap-1 sm:grid-cols-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                    {mod}
+                  </h3>
+                  <div className="grid gap-1.5 sm:grid-cols-2">
                     {perms.map((perm) => {
                       const isActive = selectedPermIds.has(perm.id);
                       return (
@@ -156,13 +174,17 @@ export default function RolesPage() {
                           key={perm.id}
                           onClick={() => togglePermission(perm.id)}
                           disabled={selectedRole.isSystem}
-                          className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
-                            isActive ? 'border-primary/30 bg-primary/5' : 'border-transparent hover:bg-muted/50'
+                          className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm transition-all ${
+                            isActive
+                              ? 'border-primary/30 bg-primary/5'
+                              : 'border-transparent hover:bg-secondary/50'
                           } ${selectedRole.isSystem ? 'cursor-default' : 'cursor-pointer'}`}
                         >
-                          <div className={`flex h-4 w-4 items-center justify-center rounded border ${
-                            isActive ? 'border-primary bg-primary' : 'border-muted-foreground/30'
-                          }`}>
+                          <div
+                            className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                              isActive ? 'border-primary bg-primary' : 'border-muted-foreground/30'
+                            }`}
+                          >
                             {isActive && <Check className="h-3 w-3 text-primary-foreground" />}
                           </div>
                           <span className="font-mono text-xs">{perm.resource}:{perm.action}</span>
@@ -175,7 +197,7 @@ export default function RolesPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card>
+          <Card className="rounded-xl border-border/60">
             <CardContent className="flex h-64 items-center justify-center text-muted-foreground">
               Select a role to view and manage its permissions.
             </CardContent>

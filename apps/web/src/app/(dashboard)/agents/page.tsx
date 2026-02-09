@@ -33,68 +33,164 @@ export default function AgentsPage() {
   const statusColors: Record<string, string> = { active: 'success', paused: 'warning', disabled: 'secondary' };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">AI Agents</h1>
-        <Button onClick={() => setShowForm(!showForm)}><Plus className="mr-2 h-4 w-4" /> Create Agent</Button>
+        <div>
+          <h1 className="font-serif text-3xl">AI Agents</h1>
+          <p className="text-muted-foreground mt-1">Create and manage your AI-powered agents.</p>
+        </div>
+        <Button
+          onClick={() => setShowForm(!showForm)}
+          className="shadow-[0_0_20px_rgba(var(--primary),0.15)]"
+        >
+          <Plus className="mr-2 h-4 w-4" /> Create Agent
+        </Button>
       </div>
 
       {newApiKey && (
-        <Card className="border-green-200 bg-green-50">
+        <Card className="rounded-xl border-emerald-500/30 bg-emerald-500/5">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2 mb-2">
-              <Key className="h-4 w-4" />
-              <p className="font-medium">API Key Created - Save this now, it won&apos;t be shown again!</p>
+            <div className="flex items-center gap-2 mb-3">
+              <Key className="h-4 w-4 text-emerald-400" />
+              <p className="font-medium text-emerald-400">
+                API Key Created -- Save this now, it won&apos;t be shown again!
+              </p>
             </div>
             <div className="flex items-center gap-2">
-              <code className="flex-1 rounded bg-white p-2 text-sm font-mono break-all">{newApiKey}</code>
-              <Button variant="outline" size="icon" onClick={() => { navigator.clipboard.writeText(newApiKey); }}>
+              <code className="flex-1 rounded-lg border border-border/60 bg-secondary/50 p-3 text-sm font-mono break-all">
+                {newApiKey}
+              </code>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => { navigator.clipboard.writeText(newApiKey); }}
+                className="h-10 w-10 rounded-lg"
+              >
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
-            <Button variant="ghost" size="sm" className="mt-2" onClick={() => setNewApiKey(null)}>Dismiss</Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-3 text-muted-foreground"
+              onClick={() => setNewApiKey(null)}
+            >
+              Dismiss
+            </Button>
           </CardContent>
         </Card>
       )}
 
       {showForm && (
-        <Card><CardHeader><CardTitle>New Agent</CardTitle></CardHeader><CardContent>
-          <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(form); }} className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2"><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Sales Assistant" required /></div>
-            <div className="space-y-2"><Label>Type</Label>
-              <select className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                <option value="assistant">Assistant</option><option value="automation">Automation</option>
-              </select>
-            </div>
-            <div className="space-y-2 sm:col-span-2"><Label>Description</Label><Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What does this agent do?" /></div>
-            <div className="flex items-end gap-2"><Button type="submit" disabled={createMutation.isPending}>Create Agent</Button></div>
-          </form>
-        </CardContent></Card>
+        <Card className="rounded-xl border-border/60">
+          <CardHeader>
+            <CardTitle className="font-serif text-xl">New Agent</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form
+              onSubmit={(e) => { e.preventDefault(); createMutation.mutate(form); }}
+              className="grid gap-5 sm:grid-cols-2"
+            >
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Name
+                </Label>
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Sales Assistant"
+                  required
+                  className="h-10 rounded-lg bg-secondary/50"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Type
+                </Label>
+                <select
+                  className="h-10 w-full rounded-lg border-input bg-secondary/50 px-3.5 text-sm"
+                  value={form.type}
+                  onChange={(e) => setForm({ ...form, type: e.target.value })}
+                >
+                  <option value="assistant">Assistant</option>
+                  <option value="automation">Automation</option>
+                </select>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Description
+                </Label>
+                <Input
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="What does this agent do?"
+                  className="h-10 rounded-lg bg-secondary/50"
+                />
+              </div>
+              <div className="flex items-end gap-2">
+                <Button
+                  type="submit"
+                  disabled={createMutation.isPending}
+                  className="shadow-[0_0_20px_rgba(var(--primary),0.15)]"
+                >
+                  Create Agent
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {agentsList?.map((agent: any) => (
-          <Card key={agent.id}>
+          <Card
+            key={agent.id}
+            className="rounded-xl border-border/60 transition-all hover:border-border hover:shadow-[0_0_20px_rgba(var(--primary),0.04)]"
+          >
             <CardHeader className="flex flex-row items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
                 <Bot className="h-5 w-5 text-primary" />
               </div>
-              <div className="flex-1">
-                <CardTitle className="text-base">{agent.name}</CardTitle>
-                <CardDescription>{agent.description || 'No description'}</CardDescription>
+              <div className="flex-1 min-w-0">
+                <CardTitle className="font-serif text-base">{agent.name}</CardTitle>
+                <CardDescription className="text-xs mt-0.5 truncate">
+                  {agent.description || 'No description'}
+                </CardDescription>
               </div>
-              <Badge variant={statusColors[agent.status] as any}>{agent.status}</Badge>
+              <Badge
+                className={
+                  agent.status === 'active'
+                    ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
+                    : agent.status === 'paused'
+                    ? 'border-amber-500/20 bg-amber-500/10 text-amber-400'
+                    : 'border-border/40 bg-secondary/50 text-muted-foreground'
+                }
+              >
+                {agent.status}
+              </Badge>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-2">
-                <Badge variant="outline">{agent.type}</Badge>
-                <span className="text-xs text-muted-foreground">Created {new Date(agent.createdAt).toLocaleDateString()}</span>
+              <div className="flex items-center gap-2">
+                <Badge className="border-border/40 bg-secondary/50 text-xs text-muted-foreground">
+                  {agent.type}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  Created {new Date(agent.createdAt).toLocaleDateString()}
+                </span>
               </div>
             </CardContent>
           </Card>
         ))}
         {(!agentsList || agentsList.length === 0) && (
-          <Card className="col-span-full"><CardContent className="py-12 text-center text-muted-foreground">No agents yet. Create one to get started.</CardContent></Card>
+          <Card className="col-span-full rounded-xl border-border/60">
+            <CardContent className="py-14 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-secondary/50 mx-auto mb-4">
+                <Bot className="h-7 w-7 text-muted-foreground/50" />
+              </div>
+              <p className="font-serif text-lg">No agents yet</p>
+              <p className="text-sm text-muted-foreground mt-1">Create one to get started.</p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

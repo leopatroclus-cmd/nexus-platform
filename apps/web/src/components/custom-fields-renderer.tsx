@@ -47,13 +47,17 @@ export function CustomFieldsRenderer({ entityType, values, onChange, disabled }:
 
   return (
     <div className="space-y-4">
-      <p className="text-xs font-semibold uppercase text-muted-foreground">Custom Fields</p>
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-border/40" />
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Custom Fields</p>
+        <div className="h-px flex-1 bg-border/40" />
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {activeFields.map((field) => (
-          <div key={field.id} className="space-y-1.5">
+          <div key={field.id} className="space-y-2">
             <Label>
               {field.fieldLabel}
-              {field.isRequired && <span className="text-destructive"> *</span>}
+              {field.isRequired && <span className="text-destructive ml-0.5">*</span>}
             </Label>
             {renderField(field, values[field.fieldKey], (v) => setValue(field.fieldKey, v), disabled)}
           </div>
@@ -103,6 +107,7 @@ function renderField(
           onChange={(e) => onChange(e.target.value)}
           required={field.isRequired}
           disabled={disabled}
+          className="[color-scheme:dark]"
         />
       );
 
@@ -136,11 +141,11 @@ function renderField(
           type="button"
           onClick={() => !disabled && onChange(!value)}
           disabled={disabled}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            value ? 'bg-primary' : 'bg-muted'
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${
+            value ? 'bg-primary shadow-[0_0_10px_hsl(238_83%_67%/0.3)]' : 'bg-secondary'
           }`}
         >
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
             value ? 'translate-x-6' : 'translate-x-1'
           }`} />
         </button>
@@ -153,7 +158,7 @@ function renderField(
           onChange={(e) => onChange(e.target.value || null)}
           required={field.isRequired}
           disabled={disabled}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex h-10 w-full rounded-lg border border-input bg-secondary/50 px-3.5 py-2 text-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary/50"
         >
           <option value="">Select...</option>
           {(field.options || []).map((opt) => (
@@ -177,8 +182,10 @@ function renderField(
                   if (isSelected) onChange(selected.filter((v) => v !== opt.value));
                   else onChange([...selected, opt.value]);
                 }}
-                className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                  isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-input hover:bg-muted'
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-all duration-200 ${
+                  isSelected
+                    ? 'border-primary/30 bg-primary/10 text-primary shadow-[0_0_8px_hsl(238_83%_67%/0.15)]'
+                    : 'border-border/60 hover:bg-secondary/60 text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {opt.label}
@@ -216,9 +223,13 @@ export function CustomFieldsDisplay({ entityType, values }: { entityType: string
   if (fieldsWithValues.length === 0) return null;
 
   return (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold uppercase text-muted-foreground">Custom Fields</p>
-      <div className="grid gap-3 sm:grid-cols-2">
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-border/40" />
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Custom Fields</p>
+        <div className="h-px flex-1 bg-border/40" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
         {fieldsWithValues.map((field) => {
           const val = values[field.fieldKey];
           let display: string;
@@ -234,8 +245,8 @@ export function CustomFieldsDisplay({ entityType, values }: { entityType: string
             display = String(val);
           }
           return (
-            <div key={field.id}>
-              <p className="text-xs text-muted-foreground">{field.fieldLabel}</p>
+            <div key={field.id} className="rounded-lg bg-secondary/30 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">{field.fieldLabel}</p>
               <p className="text-sm font-medium">{display}</p>
             </div>
           );

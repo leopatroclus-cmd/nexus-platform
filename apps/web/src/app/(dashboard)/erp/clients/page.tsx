@@ -28,34 +28,120 @@ export default function ClientsPage() {
 
   const columns = [
     { accessorKey: 'name', header: 'Name' },
-    { accessorKey: 'type', header: 'Type', cell: ({ row }: any) => <Badge variant="outline">{row.original.type}</Badge> },
+    {
+      accessorKey: 'type',
+      header: 'Type',
+      cell: ({ row }: any) => (
+        <span className="inline-flex items-center rounded-full border border-border/40 bg-secondary/30 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+          {row.original.type}
+        </span>
+      ),
+    },
     { accessorKey: 'currency', header: 'Currency' },
     { accessorKey: 'taxId', header: 'Tax ID' },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Page Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Clients</h1>
-        <Button onClick={() => setShowForm(!showForm)}><Plus className="mr-2 h-4 w-4" /> Add Client</Button>
+        <div>
+          <h1 className="font-serif text-3xl">Clients</h1>
+          <p className="text-muted-foreground mt-1">Manage your customers and vendors</p>
+        </div>
+        <Button onClick={() => setShowForm(!showForm)} className="rounded-lg">
+          <Plus className="mr-2 h-4 w-4" /> Add Client
+        </Button>
       </div>
+
+      {/* Create Form */}
       {showForm && (
-        <Card><CardHeader><CardTitle>New Client</CardTitle></CardHeader><CardContent>
-          <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate({ ...form, customData }); }} className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-2"><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
-            <div className="space-y-2"><Label>Type</Label>
-              <select className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                <option value="customer">Customer</option><option value="vendor">Vendor</option><option value="both">Both</option>
-              </select>
-            </div>
-            <div className="sm:col-span-3"><CustomFieldsRenderer entityType="erp_client" values={customData} onChange={setCustomData} /></div>
-            <div className="flex items-end"><Button type="submit" disabled={createMutation.isPending}>Create</Button></div>
-          </form>
-        </CardContent></Card>
+        <Card className="rounded-xl border-border/60 hover:border-border transition-colors">
+          <CardHeader>
+            <CardTitle className="font-serif text-xl">New Client</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form
+              onSubmit={(e) => { e.preventDefault(); createMutation.mutate({ ...form, customData }); }}
+              className="grid gap-6 sm:grid-cols-3"
+            >
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Name
+                </Label>
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  required
+                  className="h-10 rounded-lg bg-secondary/50"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Type
+                </Label>
+                <select
+                  className="flex h-10 w-full rounded-lg border border-input bg-secondary/50 px-3.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                  value={form.type}
+                  onChange={(e) => setForm({ ...form, type: e.target.value })}
+                >
+                  <option value="customer">Customer</option>
+                  <option value="vendor">Vendor</option>
+                  <option value="both">Both</option>
+                </select>
+              </div>
+              <div className="sm:col-span-3">
+                <CustomFieldsRenderer entityType="erp_client" values={customData} onChange={setCustomData} />
+              </div>
+              <div className="flex items-end">
+                <Button type="submit" disabled={createMutation.isPending} className="rounded-lg">
+                  {createMutation.isPending ? 'Creating...' : 'Create Client'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
-      <Input placeholder="Search clients..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-sm" />
-      <DataTable columns={columns} data={items} />
-      {pagination && <div className="flex justify-between text-sm text-muted-foreground"><span>{pagination.total} total</span><div className="flex gap-2"><Button variant="outline" size="sm" disabled={page===1} onClick={()=>setPage(page-1)}>Prev</Button><Button variant="outline" size="sm" disabled={page>=pagination.totalPages} onClick={()=>setPage(page+1)}>Next</Button></div></div>}
+
+      {/* Search */}
+      <Input
+        placeholder="Search clients..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="max-w-sm h-10 rounded-lg bg-secondary/50"
+      />
+
+      {/* Data Table */}
+      <div className="rounded-xl border border-border/60">
+        <DataTable columns={columns} data={items} />
+      </div>
+
+      {/* Pagination */}
+      {pagination && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">{pagination.total} total</span>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+              className="rounded-lg border-border/60"
+            >
+              Prev
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= pagination.totalPages}
+              onClick={() => setPage(page + 1)}
+              className="rounded-lg border-border/60"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
