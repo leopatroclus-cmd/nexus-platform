@@ -142,7 +142,7 @@ function renderField(
           onClick={() => !disabled && onChange(!value)}
           disabled={disabled}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${
-            value ? 'bg-primary shadow-[0_0_10px_hsl(238_83%_67%/0.3)]' : 'bg-secondary'
+            value ? 'bg-primary shadow-[0_0_10px_hsl(24_95%_53%/0.3)]' : 'bg-secondary'
           }`}
         >
           <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
@@ -184,7 +184,7 @@ function renderField(
                 }}
                 className={`rounded-full border px-3 py-1 text-xs font-medium transition-all duration-200 ${
                   isSelected
-                    ? 'border-primary/30 bg-primary/10 text-primary shadow-[0_0_8px_hsl(238_83%_67%/0.15)]'
+                    ? 'border-primary/30 bg-primary/10 text-primary shadow-[0_0_8px_hsl(24_95%_53%/0.15)]'
                     : 'border-border/60 hover:bg-secondary/60 text-muted-foreground hover:text-foreground'
                 }`}
               >

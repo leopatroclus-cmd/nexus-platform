@@ -7,8 +7,10 @@ import {
   LayoutDashboard, Users, Building2, Handshake, CalendarCheck,
   Users2, Package, ShoppingCart, FileText, CreditCard, BookOpen,
   Bot, MessageSquare, Mail, Settings, ChevronDown, Puzzle, Shield, FormInput, LogOut,
+  Sun, Moon,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
+import { useThemeStore } from '@/stores/theme';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useState } from 'react';
@@ -22,6 +24,7 @@ const iconMap: Record<string, any> = {
 export function Sidebar() {
   const pathname = usePathname();
   const { org, user, logout } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['Settings']));
 
   const { data: navData } = useQuery({
@@ -44,7 +47,7 @@ export function Sidebar() {
   const allItems = navData?.flatMap((m) => m.items) || [];
 
   return (
-    <div className="flex h-full w-64 flex-col bg-[hsl(230_22%_6%)] border-r border-border/40">
+    <div className="flex h-full w-64 flex-col bg-[hsl(var(--sidebar-bg))] border-r border-border/40">
       {/* Org header */}
       <div className="flex items-center gap-3 border-b border-border/40 p-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-sm font-bold shadow-md shadow-primary/20">
@@ -121,7 +124,7 @@ export function Sidebar() {
               )}
             >
               {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-primary shadow-[0_0_8px_hsl(238_83%_67%/0.5)]" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-primary shadow-[0_0_8px_hsl(24_95%_53%/0.5)]" />
               )}
               <Icon className="h-4 w-4 shrink-0" />
               <span className="font-medium">{item.label}</span>
@@ -130,11 +133,18 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Logout */}
-      <div className="border-t border-border/40 p-3">
+      {/* Bottom actions */}
+      <div className="border-t border-border/40 p-3 flex items-center gap-2">
+        <button
+          onClick={toggleTheme}
+          className="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-secondary/60 hover:text-foreground transition-all duration-200"
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
         <button
           onClick={() => { logout(); window.location.href = '/auth/login'; }}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
+          className="flex flex-1 items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
         >
           <LogOut className="h-4 w-4" />
           Sign out

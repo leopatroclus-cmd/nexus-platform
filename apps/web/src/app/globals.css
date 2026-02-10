@@ -12,7 +12,7 @@
     --card-foreground: 220 15% 93%;
     --popover: 230 20% 8%;
     --popover-foreground: 220 15% 93%;
-    --primary: 238 83% 67%;
+    --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
     --secondary: 230 15% 14%;
     --secondary-foreground: 220 15% 80%;
@@ -24,13 +24,48 @@
     --destructive-foreground: 0 0% 100%;
     --border: 230 15% 16%;
     --input: 230 15% 18%;
-    --ring: 238 83% 67%;
+    --ring: 24 95% 53%;
     --radius: 0.625rem;
-    --chart-1: 238 83% 67%;
+    --chart-1: 24 95% 53%;
     --chart-2: 38 92% 55%;
     --chart-3: 160 60% 45%;
     --chart-4: 350 80% 55%;
     --chart-5: 270 60% 60%;
+
+    --scrollbar-thumb: 230 15% 20%;
+    --scrollbar-thumb-hover: 230 15% 28%;
+    --sidebar-bg: 230 22% 6%;
+  }
+
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 230 20% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 230 20% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 230 20% 10%;
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 230 15% 30%;
+    --muted: 220 14% 95%;
+    --muted-foreground: 228 10% 42%;
+    --accent: 38 92% 55%;
+    --accent-foreground: 230 25% 5%;
+    --destructive: 350 80% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 87%;
+    --input: 220 13% 87%;
+    --ring: 24 95% 53%;
+    --chart-1: 24 95% 53%;
+    --chart-2: 38 92% 55%;
+    --chart-3: 160 60% 45%;
+    --chart-4: 350 80% 55%;
+    --chart-5: 270 60% 60%;
+
+    --scrollbar-thumb: 220 13% 82%;
+    --scrollbar-thumb-hover: 220 13% 72%;
+    --sidebar-bg: 220 14% 95%;
   }
 
   * {
@@ -56,11 +91,11 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(230 15% 20%);
+    background: hsl(var(--scrollbar-thumb));
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(230 15% 28%);
+    background: hsl(var(--scrollbar-thumb-hover));
   }
 }
 
@@ -83,21 +118,21 @@
 
   /* Glass morphism */
   .glass {
-    background: hsl(230 20% 8% / 0.7);
+    background: hsl(var(--card) / 0.7);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid hsl(230 15% 18% / 0.5);
+    border: 1px solid hsl(var(--input) / 0.5);
   }
 
   /* Glow effects */
   .glow-sm {
-    box-shadow: 0 0 15px -3px hsl(238 83% 67% / 0.15);
+    box-shadow: 0 0 15px -3px hsl(24 95% 53% / 0.15);
   }
   .glow-md {
-    box-shadow: 0 0 25px -5px hsl(238 83% 67% / 0.2);
+    box-shadow: 0 0 25px -5px hsl(24 95% 53% / 0.2);
   }
   .glow-lg {
-    box-shadow: 0 0 40px -5px hsl(238 83% 67% / 0.25);
+    box-shadow: 0 0 40px -5px hsl(24 95% 53% / 0.25);
   }
   .glow-amber {
     box-shadow: 0 0 20px -5px hsl(38 92% 55% / 0.2);
@@ -105,7 +140,7 @@
 
   /* Gradient text */
   .gradient-text {
-    background: linear-gradient(135deg, hsl(238 83% 75%), hsl(270 70% 70%));
+    background: linear-gradient(135deg, hsl(24 95% 63%), hsl(38 92% 55%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -113,7 +148,7 @@
 
   /* Dot grid background */
   .dot-grid {
-    background-image: radial-gradient(circle, hsl(230 15% 22%) 1px, transparent 1px);
+    background-image: radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
@@ -128,7 +163,7 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, hsl(238 83% 67% / 0.5), hsl(270 60% 60% / 0.3), hsl(38 92% 55% / 0.2));
+    background: linear-gradient(135deg, hsl(24 95% 53% / 0.5), hsl(38 92% 55% / 0.3), hsl(350 80% 55% / 0.2));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -139,9 +174,9 @@
   .shimmer {
     background: linear-gradient(
       90deg,
-      hsl(230 15% 11%) 0%,
-      hsl(230 15% 16%) 50%,
-      hsl(230 15% 11%) 100%
+      hsl(var(--muted)) 0%,
+      hsl(var(--border)) 50%,
+      hsl(var(--muted)) 100%
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;
@@ -165,6 +200,6 @@
 
 /* Pulse glow for active states */
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 15px -3px hsl(238 83% 67% / 0.15); }
-  50% { box-shadow: 0 0 25px -3px hsl(238 83% 67% / 0.3); }
+  0%, 100% { box-shadow: 0 0 15px -3px hsl(24 95% 53% / 0.15); }
+  50% { box-shadow: 0 0 25px -3px hsl(24 95% 53% / 0.3); }
 }
