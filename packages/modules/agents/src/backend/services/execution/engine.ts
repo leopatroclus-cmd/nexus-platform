@@ -9,6 +9,11 @@ import { buildSystemPrompt, conversationToLLMMessages } from './prompt-builder.j
 
 const MAX_TOOL_ITERATIONS = 10;
 
+const ANALYTICS_TOOLS = new Set([
+  'revenue_analytics', 'top_products', 'invoice_analytics',
+  'payment_analytics', 'inventory_analytics', 'deal_pipeline_analytics',
+]);
+
 interface ExecutionContext {
   db: Database;
   emit: (room: string, event: string, data: unknown) => void;
@@ -147,11 +152,13 @@ export async function executeAgentTurn(
           result = { error: err.message };
         }
 
+        const isAnalyticsTool = ANALYTICS_TOOLS.has(tc.name);
         ctx.emit(`conv:${conversationId}`, 'tool-execution', {
           conversationId,
           agentId: agent.id,
           toolName: tc.name,
           status: 'completed',
+          ...(isAnalyticsTool ? { toolArgs: tc.arguments, result } : {}),
         });
 
         // Log the action

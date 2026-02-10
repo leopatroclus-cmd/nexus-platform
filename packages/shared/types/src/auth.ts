@@ -4,6 +4,7 @@ export interface JwtPayload {
   role: string;
   permissions: string[];
   type: 'access' | 'refresh';
+  jti?: string;
 }
 
 export interface AuthTokens {

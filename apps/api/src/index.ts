@@ -22,6 +22,7 @@ import customFieldsRoutes from './routes/custom-fields.routes.js';
 import { generateInvoicePdf } from './services/invoice-pdf.service.js';
 import { globalSearch } from './services/search.service.js';
 import { getDashboardStats } from './services/dashboard.service.js';
+import analyticsRoutes from './routes/analytics.routes.js';
 
 // Module manifests
 import { coreManifest } from '@nexus/module-core';
@@ -82,6 +83,9 @@ const moduleRouters = registry.createRouters(ctx);
 for (const { key, router } of moduleRouters) {
   app.use(`/api/${key}`, authMiddleware, tenantMiddleware, moduleGuard(key), router);
 }
+
+// ─── Analytics ───
+app.use('/api/analytics', authMiddleware, tenantMiddleware, analyticsRoutes);
 
 // ─── Dashboard ───
 app.get('/api/dashboard', authMiddleware, tenantMiddleware, async (req, res, next) => {

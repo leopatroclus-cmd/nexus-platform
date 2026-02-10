@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Users, Building2, Handshake, CalendarCheck,
   Users2, Package, ShoppingCart, FileText, CreditCard, BookOpen,
   Bot, MessageSquare, Mail, Settings, ChevronDown, Puzzle, Shield, FormInput, LogOut,
-  Sun, Moon,
+  Sun, Moon, BarChart3,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import { useThemeStore } from '@/stores/theme';
@@ -18,7 +18,7 @@ import { useState } from 'react';
 const iconMap: Record<string, any> = {
   LayoutDashboard, Users, Building2, Handshake, CalendarCheck,
   Users2, Package, ShoppingCart, FileText, CreditCard, BookOpen,
-  Bot, MessageSquare, Mail, Settings, Puzzle, Shield, FormInput, Building: Building2,
+  Bot, MessageSquare, Mail, Settings, Puzzle, Shield, FormInput, Building: Building2, BarChart3,
 };
 
 export function Sidebar() {

@@ -30,7 +30,10 @@ export default function ChatPage() {
 
   const { data: conversations } = useQuery({
     queryKey: ['conversations'],
-    queryFn: async () => { const { data } = await api.get('/chat/conversations'); return data.data; },
+    queryFn: async () => {
+      const { data } = await api.get('/chat/conversations');
+      return (data.data as any[]).filter((c: any) => c.type !== 'analytics');
+    },
   });
 
   const { data: convDetail } = useQuery({

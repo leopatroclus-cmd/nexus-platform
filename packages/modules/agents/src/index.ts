@@ -17,6 +17,7 @@ export const agentsManifest: ModuleManifest = {
   ],
   navigation: [
     { label: 'AI Agents', icon: 'Bot', path: '/agents' },
+    { label: 'Analytics', icon: 'BarChart3', path: '/analytics' },
   ],
   entityTypes: [],
   createRouter: (ctx) => createAgentsRouter(ctx.db as any, ctx.emit, (ctx as any).encryptionKey),
