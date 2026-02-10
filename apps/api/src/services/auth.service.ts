@@ -287,9 +287,10 @@ export async function getMe(userId: string, orgId: string) {
 }
 
 async function generateTokens(userId: string, orgId: string, role: string, permissions: string[]) {
+  const jti = crypto.randomUUID();
   const tokenPayload = { sub: userId, orgId, role, permissions };
   const accessToken = signAccessToken(tokenPayload);
-  const refreshTokenValue = signRefreshToken(tokenPayload);
+  const refreshTokenValue = signRefreshToken({ ...tokenPayload, jti });
 
   const tokenHash = crypto.createHash('sha256').update(refreshTokenValue).digest('hex');
   await db.insert(refreshTokens).values({
