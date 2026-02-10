@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useRouter } from 'next/navigation';
 import { Plus, Bot, Key, Copy } from 'lucide-react';
 
 export default function AgentsPage() {
@@ -15,6 +16,7 @@ export default function AgentsPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', description: '', type: 'assistant' });
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
+  const router = useRouter();
 
   const { data: agentsList } = useQuery({
     queryKey: ['agents'],
@@ -145,7 +147,8 @@ export default function AgentsPage() {
         {agentsList?.map((agent: any) => (
           <Card
             key={agent.id}
-            className="rounded-xl border-border/60 transition-all hover:border-border hover:shadow-[0_0_20px_rgba(var(--primary),0.04)]"
+            className="rounded-xl border-border/60 transition-all hover:border-border hover:shadow-[0_0_20px_rgba(var(--primary),0.04)] cursor-pointer"
+            onClick={() => router.push(`/agents/${agent.id}`)}
           >
             <CardHeader className="flex flex-row items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">

@@ -5,9 +5,79 @@ import crypto from 'crypto';
 import { agents, agentPermissions, agentTools, agentActionsLog, permissions } from '@nexus/database';
 import type { Database } from '@nexus/database';
 import { AGENT_API_KEY_PREFIX } from '@nexus/utils';
+import * as providerKeysService from './services/provider-keys.service.js';
+import { getToolRegistry, getToolDefinitionsForAgent } from './services/tools/registry.js';
+import { handleApproval, handleRejection } from './services/execution/approval-handler.js';
 
-export function createAgentsRouter(db: Database): Router {
+type EmitFn = (room: string, event: string, data: unknown) => void;
+
+export function createAgentsRouter(db: Database, emit?: EmitFn, encryptionKey?: string): Router {
   const router = Router();
+
+  // ─── Available models (hardcoded) ───
+  router.get('/available-models', (_req, res) => {
+    res.json({
+      success: true,
+      data: {
+        anthropic: [
+          { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
+          { id: 'claude-haiku-4-20250414', name: 'Claude Haiku 4' },
+        ],
+        openai: [
+          { id: 'gpt-4o', name: 'GPT-4o' },
+          { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+        ],
+        google: [
+          { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+          { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+        ],
+      },
+    });
+  });
+
+  // ─── Available tools ───
+  router.get('/available-tools', (_req, res) => {
+    const registry = getToolRegistry();
+    const tools = Array.from(registry.values()).map((t) => ({
+      key: t.key,
+      name: t.name,
+      description: t.description,
+      module: t.key.split('_')[0] || 'general',
+      isDestructive: t.isDestructive,
+    }));
+    res.json({ success: true, data: tools });
+  });
+
+  // ─── Provider Keys ───
+  router.get('/provider-keys', async (req, res, next) => {
+    try {
+      const data = await providerKeysService.listProviderKeys(db, req.orgId!);
+      res.json({ success: true, data });
+    } catch (e) { next(e); }
+  });
+
+  router.post('/provider-keys', async (req, res, next) => {
+    try {
+      if (!encryptionKey) return res.status(500).json({ success: false, error: 'Encryption not configured' });
+      const data = await providerKeysService.addProviderKey(db, req.orgId!, req.body, encryptionKey);
+      res.status(201).json({ success: true, data });
+    } catch (e) { next(e); }
+  });
+
+  router.delete('/provider-keys/:id', async (req, res, next) => {
+    try {
+      await providerKeysService.removeProviderKey(db, req.orgId!, req.params.id);
+      res.json({ success: true, message: 'Provider key deleted' });
+    } catch (e) { next(e); }
+  });
+
+  router.post('/provider-keys/:id/test', async (req, res, next) => {
+    try {
+      const { provider, apiKey } = req.body;
+      const result = await providerKeysService.testProviderKey(provider, apiKey);
+      res.json({ success: true, data: result });
+    } catch (e) { next(e); }
+  });
 
   // ─── List agents ───
   router.get('/', async (req, res, next) => {
@@ -133,6 +203,12 @@ export function createAgentsRouter(db: Database): Router {
         .where(and(eq(agentActionsLog.id, req.params.actionId), eq(agentActionsLog.orgId, req.orgId!), eq(agentActionsLog.status, 'pending_approval')))
         .returning();
       if (!action) return res.status(404).json({ success: false, error: 'Action not found or not pending' });
+
+      // Resume agent execution if emit is available
+      if (emit && encryptionKey) {
+        handleApproval({ db, emit, orgId: req.orgId!, encryptionKey }, action).catch(console.error);
+      }
+
       res.json({ success: true, data: action });
     } catch (e) { next(e); }
   });
@@ -144,7 +220,42 @@ export function createAgentsRouter(db: Database): Router {
         .where(and(eq(agentActionsLog.id, req.params.actionId), eq(agentActionsLog.orgId, req.orgId!), eq(agentActionsLog.status, 'pending_approval')))
         .returning();
       if (!action) return res.status(404).json({ success: false, error: 'Action not found or not pending' });
+
+      // Notify agent of rejection
+      if (emit && encryptionKey) {
+        handleRejection({ db, emit, orgId: req.orgId!, encryptionKey }, action, req.body.reason).catch(console.error);
+      }
+
       res.json({ success: true, data: action });
+    } catch (e) { next(e); }
+  });
+
+  // ─── Execute agent (direct invocation) ───
+  router.post('/:id/execute', async (req, res, next) => {
+    try {
+      if (!emit || !encryptionKey) {
+        return res.status(500).json({ success: false, error: 'Agent execution not configured' });
+      }
+
+      const { executeAgentTurn } = await import('./services/execution/engine.js');
+
+      const [agent] = await db.select().from(agents)
+        .where(and(eq(agents.id, req.params.id), eq(agents.orgId, req.orgId!))).limit(1);
+      if (!agent) return res.status(404).json({ success: false, error: 'Agent not found' });
+
+      const toolsList = await db.select().from(agentTools).where(eq(agentTools.agentId, agent.id));
+
+      // Execute in background, respond immediately
+      executeAgentTurn(
+        { db, emit, orgId: req.orgId!, encryptionKey },
+        agent,
+        toolsList.map((t) => t.toolKey),
+        req.body.conversationId,
+        req.body.message,
+        req.body.history || [],
+      ).catch(console.error);
+
+      res.json({ success: true, message: 'Agent execution started' });
     } catch (e) { next(e); }
   });
 

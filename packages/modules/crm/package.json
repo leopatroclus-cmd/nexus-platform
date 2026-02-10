@@ -4,6 +4,10 @@
   "version": "0.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./services/*": "./dist/backend/services/*"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",

@@ -30,6 +30,7 @@ import { erpManifest } from '@nexus/module-erp';
 import { agentsManifest } from '@nexus/module-agents';
 import { chatManifest } from '@nexus/module-chat';
 import { emailManifest } from '@nexus/module-email';
+import { triggerAgentForConversation } from './lib/agent-trigger.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -70,9 +71,12 @@ app.get('/api/modules/entity-types', authMiddleware, tenantMiddleware, (_req, re
 const io = initSocketIO(httpServer, env.CORS_ORIGIN);
 
 // ─── Module Routes (with module guard) ───
+const emitFn = (room: string, event: string, data: unknown) => io.to(room).emit(event, data);
 const ctx = {
   db: db as any,
-  emit: (room: string, event: string, data: unknown) => io.to(room).emit(event, data),
+  emit: emitFn,
+  encryptionKey: env.ENCRYPTION_KEY,
+  agentTrigger: triggerAgentForConversation,
 };
 const moduleRouters = registry.createRouters(ctx);
 for (const { key, router } of moduleRouters) {

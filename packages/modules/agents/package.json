@@ -1,11 +1,34 @@
 {
   "name": "@nexus/module-agents",
-  "private": true, "version": "0.0.0",
-  "main": "./dist/index.js", "types": "./dist/index.d.ts",
-  "scripts": { "build": "tsc", "dev": "tsc --watch", "type-check": "tsc --noEmit" },
-  "dependencies": {
-    "@nexus/database": "workspace:*", "@nexus/types": "workspace:*", "@nexus/utils": "workspace:*",
-    "drizzle-orm": "^0.36.0", "express": "^4.21.0", "zod": "^3.23.0"
+  "private": true,
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./services/*": "./dist/backend/services/*"
   },
-  "devDependencies": { "@nexus/config": "workspace:*", "@types/express": "^5.0.0", "typescript": "^5.7.0" }
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nexus/database": "workspace:*",
+    "@nexus/types": "workspace:*",
+    "@nexus/utils": "workspace:*",
+    "@nexus/module-crm": "workspace:*",
+    "@nexus/module-erp": "workspace:*",
+    "@anthropic-ai/sdk": "^0.39.0",
+    "openai": "^4.77.0",
+    "@google/generative-ai": "^0.21.0",
+    "drizzle-orm": "^0.36.0",
+    "express": "^4.21.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@nexus/config": "workspace:*",
+    "@types/express": "^5.0.0",
+    "typescript": "^5.7.0"
+  }
 }

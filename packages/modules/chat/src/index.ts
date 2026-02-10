@@ -16,7 +16,7 @@ export const chatManifest: ModuleManifest = {
     { label: 'Chat', icon: 'MessageSquare', path: '/chat' },
   ],
   entityTypes: [],
-  createRouter: (ctx) => createChatRouter(ctx.db as any, ctx.emit),
+  createRouter: (ctx) => createChatRouter(ctx.db as any, ctx.emit, (ctx as any).agentTrigger, (ctx as any).encryptionKey),
 };
 
 export default chatManifest;

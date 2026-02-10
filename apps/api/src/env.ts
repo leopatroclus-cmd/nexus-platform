@@ -8,6 +8,7 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   REDIS_URL: z.string().default('redis://localhost:6379'),
+  ENCRYPTION_KEY: z.string().min(32),
 });
 
 function loadEnv() {

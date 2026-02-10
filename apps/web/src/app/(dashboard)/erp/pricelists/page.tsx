@@ -63,6 +63,9 @@ export default function PricelistsPage() {
       setShowForm(false);
       setForm({ name: '', description: '', currency: 'USD', isActive: true });
     },
+    onError: (err: any) => {
+      alert(err?.response?.data?.error || err.message || 'Failed to create pricelist');
+    },
   });
 
   const updateMutation = useMutation({
@@ -73,6 +76,9 @@ export default function PricelistsPage() {
       setEditId(null);
       setForm({ name: '', description: '', currency: 'USD', isActive: true });
       setPriceItems([emptyItem()]);
+    },
+    onError: (err: any) => {
+      alert(err?.response?.data?.error || err.message || 'Failed to update pricelist');
     },
   });
 

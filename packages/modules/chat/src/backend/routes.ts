@@ -5,8 +5,9 @@ import { conversations, conversationParticipants, messages } from '@nexus/databa
 import type { Database } from '@nexus/database';
 
 type EmitFn = (room: string, event: string, data: unknown) => void;
+type AgentTriggerFn = (db: Database, emit: EmitFn, orgId: string, conversationId: string, senderType: string, encryptionKey: string) => Promise<void>;
 
-export function createChatRouter(db: Database, emit?: EmitFn): Router {
+export function createChatRouter(db: Database, emit?: EmitFn, agentTrigger?: AgentTriggerFn, encryptionKey?: string): Router {
   const router = Router();
 
   // ─── List conversations ───
@@ -124,7 +125,38 @@ export function createChatRouter(db: Database, emit?: EmitFn): Router {
         emit(`org:${req.orgId}`, 'conversation-updated', { conversationId: req.params.id, lastMessage: msg });
       }
 
+      // Trigger agent if user sent the message
+      if (agentTrigger && emit && encryptionKey) {
+        agentTrigger(db, emit, req.orgId!, req.params.id as string, senderType, encryptionKey).catch(console.error);
+      }
+
       res.status(201).json({ success: true, data: msg });
+    } catch (e) { next(e); }
+  });
+
+  // ─── Add participant to conversation ───
+  router.post('/conversations/:id/participants', async (req, res, next) => {
+    try {
+      const { participantType, participantId } = req.body;
+
+      // Check if already a participant
+      const [existing] = await db.select().from(conversationParticipants)
+        .where(and(
+          eq(conversationParticipants.conversationId, req.params.id as string),
+          eq(conversationParticipants.participantId, participantId),
+        )).limit(1);
+
+      if (existing) {
+        return res.json({ success: true, data: existing, message: 'Already a participant' });
+      }
+
+      const [participant] = await db.insert(conversationParticipants).values({
+        conversationId: req.params.id as string,
+        participantType: participantType || 'agent',
+        participantId,
+      }).returning();
+
+      res.status(201).json({ success: true, data: participant });
     } catch (e) { next(e); }
   });
 

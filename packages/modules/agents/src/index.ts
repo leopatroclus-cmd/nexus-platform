@@ -13,12 +13,16 @@ export const agentsManifest: ModuleManifest = {
     { code: 'agents:agents:delete', module: 'agents', resource: 'agents', action: 'delete', description: 'Delete agents' },
     { code: 'agents:actions:read', module: 'agents', resource: 'actions', action: 'read', description: 'View action logs' },
     { code: 'agents:actions:approve', module: 'agents', resource: 'actions', action: 'approve', description: 'Approve actions' },
+    { code: 'agents:provider_keys:manage', module: 'agents', resource: 'provider_keys', action: 'manage', description: 'Manage AI provider keys' },
   ],
   navigation: [
     { label: 'AI Agents', icon: 'Bot', path: '/agents' },
   ],
   entityTypes: [],
-  createRouter: (ctx) => createAgentsRouter(ctx.db as any),
+  createRouter: (ctx) => createAgentsRouter(ctx.db as any, ctx.emit, (ctx as any).encryptionKey),
 };
 
 export default agentsManifest;
+
+export { executeAgentTurn } from './backend/services/execution/engine.js';
+export { getDecryptedKey } from './backend/services/provider-keys.service.js';
