@@ -1,0 +1,1 @@
+ALTER TABLE "erp_invoices" ADD COLUMN "issued_at" timestamp with time zone;

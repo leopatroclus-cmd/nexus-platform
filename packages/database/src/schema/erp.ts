@@ -125,6 +125,7 @@ export const erpInvoices = pgTable('erp_invoices', {
   amountPaid: numeric('amount_paid', { precision: 15, scale: 2 }).notNull().default('0'),
   balanceDue: numeric('balance_due', { precision: 15, scale: 2 }).notNull().default('0'),
   originalInvoiceId: uuid('original_invoice_id').references((): any => erpInvoices.id, { onDelete: 'set null' }),
+  issuedAt: timestamp('issued_at', { withTimezone: true }),
   customData: jsonb('custom_data').default({}),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

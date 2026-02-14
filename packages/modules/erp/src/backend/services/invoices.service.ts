@@ -75,10 +75,42 @@ export async function createInvoice(db: Database, orgId: string, data: any) {
   return { ...invoice, items };
 }
 
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  draft: ['sent', 'void'],
+  sent: ['paid', 'overdue', 'void'],
+  overdue: ['paid', 'void'],
+  paid: [],
+  void: [],
+};
+
 export async function updateStatus(db: Database, orgId: string, id: string, newStatus: string) {
+  const [existing] = await db.select().from(erpInvoices)
+    .where(and(eq(erpInvoices.id, id), eq(erpInvoices.orgId, orgId))).limit(1);
+  if (!existing) return null;
+
+  const allowed = VALID_TRANSITIONS[existing.status];
+  if (!allowed || !allowed.includes(newStatus)) {
+    throw new Error(`Cannot transition invoice from '${existing.status}' to '${newStatus}'`);
+  }
+
   const [invoice] = await db.update(erpInvoices).set({ status: newStatus, updatedAt: new Date() })
-    .where(and(eq(erpInvoices.id, id), eq(erpInvoices.orgId, orgId))).returning();
-  return invoice || null;
+    .where(eq(erpInvoices.id, id)).returning();
+  return invoice;
+}
+
+export async function issueInvoice(db: Database, orgId: string, id: string) {
+  const [existing] = await db.select().from(erpInvoices)
+    .where(and(eq(erpInvoices.id, id), eq(erpInvoices.orgId, orgId))).limit(1);
+  if (!existing) return null;
+
+  if (existing.status !== 'draft') {
+    throw new Error(`Cannot issue invoice: current status is '${existing.status}', expected 'draft'`);
+  }
+
+  const [invoice] = await db.update(erpInvoices)
+    .set({ status: 'sent', issuedAt: new Date(), updatedAt: new Date() })
+    .where(eq(erpInvoices.id, id)).returning();
+  return invoice;
 }
 
 export async function createCreditNote(db: Database, orgId: string, originalInvoiceId: string, items: any[]) {

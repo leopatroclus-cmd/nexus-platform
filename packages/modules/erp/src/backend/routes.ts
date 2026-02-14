@@ -217,12 +217,26 @@ export function createErpRouter(db: Database): Router {
     } catch (e) { next(e); }
   });
 
+  router.put('/invoices/:id/issue', async (req, res, next) => {
+    try {
+      const invoice = await invoicesSvc.issueInvoice(db, req.orgId!, req.params.id);
+      if (!invoice) return res.status(404).json({ success: false, error: 'Invoice not found' });
+      res.json({ success: true, data: invoice });
+    } catch (e: any) {
+      if (e.message?.startsWith('Cannot issue invoice')) return res.status(400).json({ success: false, error: e.message });
+      next(e);
+    }
+  });
+
   router.put('/invoices/:id/status', async (req, res, next) => {
     try {
       const invoice = await invoicesSvc.updateStatus(db, req.orgId!, req.params.id, req.body.status);
       if (!invoice) return res.status(404).json({ success: false, error: 'Invoice not found' });
       res.json({ success: true, data: invoice });
-    } catch (e) { next(e); }
+    } catch (e: any) {
+      if (e.message?.startsWith('Cannot transition')) return res.status(400).json({ success: false, error: e.message });
+      next(e);
+    }
   });
 
   router.post('/invoices/:id/credit-note', async (req, res, next) => {
