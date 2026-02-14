@@ -5,6 +5,7 @@ import { listOrders, getOrderById, createOrder } from '@nexus/module-erp/service
 import { listInvoices, getInvoiceById, createInvoice, updateStatus } from '@nexus/module-erp/services/invoices.service.js';
 import { listPayments, createPayment } from '@nexus/module-erp/services/payments.service.js';
 import { resolvePriceForClient } from '@nexus/module-erp/services/pricelists.service.js';
+import { getQuickStats } from '@nexus/module-erp/services/dashboard.service.js';
 
 export const erpTools: Tool[] = [
   {
@@ -410,6 +411,20 @@ export const erpTools: Tool[] = [
         startDate: args.startDate ? new Date(args.startDate as string) : undefined,
         endDate: args.endDate ? new Date(args.endDate as string) : undefined,
       });
+    },
+  },
+  {
+    key: 'erp_dashboard_summary',
+    name: 'dashboard_summary',
+    description: 'Get a quick business health snapshot: recent revenue, outstanding receivables, and top clients. Use when user asks "how am I doing" or "give me a summary".',
+    parameters: {
+      type: 'object',
+      properties: {},
+    },
+    requiredPermission: 'erp:orders:read',
+    isDestructive: false,
+    handler: async (db, orgId) => {
+      return getQuickStats(db, orgId);
     },
   },
 ];
