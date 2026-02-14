@@ -51,7 +51,32 @@ export async function getClientStatement(
     .where(and(eq(erpClients.id, clientId), eq(erpClients.orgId, orgId))).limit(1);
   if (!client) return null;
 
-  // Build date filters
+  const clientOpeningBalance = parseFloat(client.openingBalance || '0');
+  const openingBalanceDate = client.openingBalanceDate;
+
+  // Determine the effective opening balance for the statement period.
+  // If startDate is after the openingBalanceDate, we need to roll forward
+  // from openingBalance by summing invoices - payments between openingBalanceDate and startDate.
+  let effectiveOpening = clientOpeningBalance;
+
+  if (options?.startDate && openingBalanceDate && options.startDate > openingBalanceDate) {
+    // Sum invoices between openingBalanceDate and startDate
+    const preInvoices = await db.select().from(erpInvoices).where(and(
+      eq(erpInvoices.orgId, orgId), eq(erpInvoices.clientId, clientId),
+      gte(erpInvoices.issueDate, openingBalanceDate), lte(erpInvoices.issueDate, options.startDate),
+    ));
+    const prePayments = await db.select().from(erpPayments).where(and(
+      eq(erpPayments.orgId, orgId), eq(erpPayments.clientId, clientId),
+      gte(erpPayments.paymentDate, openingBalanceDate), lte(erpPayments.paymentDate, options.startDate),
+    ));
+    const preInvoiceTotal = preInvoices.reduce((s, i) => s + parseFloat(i.total), 0);
+    const prePaymentTotal = prePayments.reduce((s, p) => s + parseFloat(p.amount), 0);
+    effectiveOpening = clientOpeningBalance + preInvoiceTotal - prePaymentTotal;
+  }
+
+  effectiveOpening = Math.round(effectiveOpening * 100) / 100;
+
+  // Build date filters for the statement period
   const invoiceConditions = [eq(erpInvoices.orgId, orgId), eq(erpInvoices.clientId, clientId)];
   const paymentConditions = [eq(erpPayments.orgId, orgId), eq(erpPayments.clientId, clientId)];
   if (options?.startDate) {
@@ -105,8 +130,8 @@ export async function getClientStatement(
   // Sort chronologically
   transactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  // Compute running balance
-  let balance = 0;
+  // Compute running balance starting from effective opening
+  let balance = effectiveOpening;
   for (const txn of transactions) {
     balance += txn.amount;
     txn.runningBalance = Math.round(balance * 100) / 100;
@@ -122,7 +147,7 @@ export async function getClientStatement(
   return {
     client: { id: client.id, name: client.name, type: client.type, currency: client.currency },
     transactions,
-    openingBalance: 0,
+    openingBalance: effectiveOpening,
     closingBalance: Math.round(balance * 100) / 100,
     totalInvoiced: Math.round(totalInvoiced * 100) / 100,
     totalPaid: Math.round(totalPaid * 100) / 100,

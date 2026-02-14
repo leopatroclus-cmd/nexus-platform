@@ -15,6 +15,13 @@
       "when": 1771097143703,
       "tag": "0001_empty_manta",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771097360790,
+      "tag": "0002_curious_revanche",
+      "breakpoints": true
     }
   ]
 }

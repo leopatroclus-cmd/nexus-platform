@@ -32,6 +32,8 @@ export const erpClients = pgTable('erp_clients', {
   pricelistId: uuid('pricelist_id').references(() => erpPricelists.id, { onDelete: 'set null' }),
   crmCompanyId: uuid('crm_company_id').references(() => crmCompanies.id, { onDelete: 'set null' }),
   crmContactId: uuid('crm_contact_id').references(() => crmContacts.id, { onDelete: 'set null' }),
+  openingBalance: numeric('opening_balance', { precision: 15, scale: 2 }).notNull().default('0'),
+  openingBalanceDate: timestamp('opening_balance_date', { withTimezone: true }),
   customData: jsonb('custom_data').default({}),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

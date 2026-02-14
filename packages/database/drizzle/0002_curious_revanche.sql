@@ -1,0 +1,2 @@
+ALTER TABLE "erp_clients" ADD COLUMN "opening_balance" numeric(15, 2) DEFAULT '0' NOT NULL;--> statement-breakpoint
+ALTER TABLE "erp_clients" ADD COLUMN "opening_balance_date" timestamp with time zone;
