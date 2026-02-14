@@ -1,0 +1,1 @@
+ALTER TABLE "organizations" ADD COLUMN "invoice_prefix" varchar(20) DEFAULT 'INV-' NOT NULL;

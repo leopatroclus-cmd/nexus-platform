@@ -21,6 +21,16 @@ router.put('/:orgId', requirePermission('core:orgs:update'), async (req, res, ne
   } catch (e) { next(e); }
 });
 
+router.patch('/:orgId/settings', requirePermission('core:orgs:update'), async (req, res, next) => {
+  try {
+    const allowed: Record<string, unknown> = {};
+    if (req.body.invoicePrefix !== undefined) allowed.invoicePrefix = req.body.invoicePrefix;
+    if (req.body.settings !== undefined) allowed.settings = req.body.settings;
+    const org = await orgService.updateOrg(req.params.orgId as string, allowed);
+    res.json({ success: true, data: org });
+  } catch (e) { next(e); }
+});
+
 router.get('/:orgId/members', requirePermission('core:members:read'), async (req, res, next) => {
   try {
     const members = await orgService.getMembers(req.params.orgId as string);

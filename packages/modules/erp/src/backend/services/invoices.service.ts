@@ -1,5 +1,5 @@
 import { eq, and, desc, count } from 'drizzle-orm';
-import { erpInvoices, erpInvoiceItems } from '@nexus/database';
+import { erpInvoices, erpInvoiceItems, organizations } from '@nexus/database';
 import type { Database } from '@nexus/database';
 import { getNextNumber } from './sequences.service.js';
 
@@ -48,7 +48,10 @@ export async function getInvoiceById(db: Database, orgId: string, id: string) {
 }
 
 export async function createInvoice(db: Database, orgId: string, data: any) {
-  const invoiceNumber = await getNextNumber(db, orgId, 'erp_invoice', 'INV-');
+  const [org] = await db.select({ invoicePrefix: organizations.invoicePrefix })
+    .from(organizations).where(eq(organizations.id, orgId)).limit(1);
+  const prefix = org?.invoicePrefix || 'INV-';
+  const invoiceNumber = await getNextNumber(db, orgId, 'erp_invoice', prefix);
   const { subtotal, tax, total } = calcTotals(data.items, data.discount || 0);
 
   const [invoice] = await db.insert(erpInvoices).values({

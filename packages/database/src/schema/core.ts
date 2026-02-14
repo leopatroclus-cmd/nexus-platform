@@ -7,6 +7,7 @@ export const organizations = pgTable('organizations', {
   slug: varchar('slug', { length: 255 }).notNull().unique(),
   plan: varchar('plan', { length: 50 }).notNull().default('free'),
   settings: jsonb('settings').default({}),
+  invoicePrefix: varchar('invoice_prefix', { length: 20 }).notNull().default('INV-'),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
