@@ -1,8 +1,9 @@
 import type { Tool } from './types.js';
-import { listClients, getClientById } from '@nexus/module-erp/services/clients.service.js';
-import { listInventory, getItemById } from '@nexus/module-erp/services/inventory.service.js';
+import { listClients, getClientById, createClient } from '@nexus/module-erp/services/clients.service.js';
+import { listInventory, getItemById, createItem } from '@nexus/module-erp/services/inventory.service.js';
 import { listOrders, getOrderById, createOrder } from '@nexus/module-erp/services/orders.service.js';
-import { listInvoices, getInvoiceById } from '@nexus/module-erp/services/invoices.service.js';
+import { listInvoices, getInvoiceById, createInvoice, updateStatus } from '@nexus/module-erp/services/invoices.service.js';
+import { listPayments, createPayment } from '@nexus/module-erp/services/payments.service.js';
 import { resolvePriceForClient } from '@nexus/module-erp/services/pricelists.service.js';
 
 export const erpTools: Tool[] = [
@@ -227,6 +228,166 @@ export const erpTools: Tool[] = [
     handler: async (db, orgId, args) => {
       const price = await resolvePriceForClient(db, orgId, args.clientId as string, args.inventoryId as string);
       return { price };
+    },
+  },
+  {
+    key: 'erp_create_invoice',
+    name: 'create_invoice',
+    description: 'Create a new invoice. This is a destructive action that requires approval. Provide clientId, dates, and line items.',
+    parameters: {
+      type: 'object',
+      properties: {
+        clientId: { type: 'string', description: 'The client ID' },
+        issueDate: { type: 'string', description: 'Issue date in ISO format' },
+        dueDate: { type: 'string', description: 'Due date in ISO format' },
+        items: {
+          type: 'array',
+          description: 'Array of line items',
+          items: {
+            type: 'object',
+            properties: {
+              description: { type: 'string', description: 'Line item description' },
+              quantity: { type: 'number', description: 'Quantity' },
+              unitPrice: { type: 'number', description: 'Unit price' },
+              inventoryId: { type: 'string', description: 'Optional inventory item ID' },
+              taxRate: { type: 'number', description: 'Tax rate percentage' },
+              discountPct: { type: 'number', description: 'Line discount percentage' },
+            },
+            required: ['description', 'quantity', 'unitPrice'],
+          },
+        },
+      },
+      required: ['clientId', 'issueDate', 'dueDate', 'items'],
+    },
+    requiredPermission: 'erp:invoices:create',
+    isDestructive: true,
+    handler: async (db, orgId, args) => {
+      return createInvoice(db, orgId, {
+        ...args,
+        issueDate: new Date(args.issueDate as string),
+        dueDate: new Date(args.dueDate as string),
+      });
+    },
+  },
+  {
+    key: 'erp_update_invoice_status',
+    name: 'update_invoice_status',
+    description: 'Update an invoice status. This is a destructive action that requires approval.',
+    parameters: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'The invoice ID' },
+        status: { type: 'string', description: 'New status: draft, sent, paid, or void' },
+      },
+      required: ['id', 'status'],
+    },
+    requiredPermission: 'erp:invoices:update',
+    isDestructive: true,
+    handler: async (db, orgId, args) => {
+      return updateStatus(db, orgId, args.id as string, args.status as string);
+    },
+  },
+  {
+    key: 'erp_create_payment',
+    name: 'create_payment',
+    description: 'Record a payment. This is a destructive action that requires approval.',
+    parameters: {
+      type: 'object',
+      properties: {
+        clientId: { type: 'string', description: 'The client ID' },
+        invoiceId: { type: 'string', description: 'Optional invoice ID to apply payment to' },
+        amount: { type: 'number', description: 'Payment amount' },
+        paymentDate: { type: 'string', description: 'Payment date in ISO format' },
+        paymentMethod: { type: 'string', description: 'Payment method (e.g. bank_transfer, credit_card, cash, check)' },
+      },
+      required: ['clientId', 'amount', 'paymentDate', 'paymentMethod'],
+    },
+    requiredPermission: 'erp:payments:create',
+    isDestructive: true,
+    handler: async (db, orgId, args) => {
+      return createPayment(db, orgId, {
+        ...args,
+        paymentDate: new Date(args.paymentDate as string),
+      });
+    },
+  },
+  {
+    key: 'erp_list_payments',
+    name: 'list_payments',
+    description: 'List payments with optional filters for client and invoice.',
+    parameters: {
+      type: 'object',
+      properties: {
+        clientId: { type: 'string', description: 'Filter by client ID' },
+        invoiceId: { type: 'string', description: 'Filter by invoice ID' },
+        page: { type: 'number', description: 'Page number' },
+        limit: { type: 'number', description: 'Results per page' },
+      },
+    },
+    requiredPermission: 'erp:payments:read',
+    isDestructive: false,
+    handler: async (db, orgId, args) => {
+      return listPayments(db, orgId, {
+        clientId: args.clientId as string,
+        invoiceId: args.invoiceId as string,
+        page: args.page as number,
+        limit: args.limit as number,
+      });
+    },
+  },
+  {
+    key: 'erp_create_client',
+    name: 'create_client',
+    description: 'Create a new ERP client (customer or vendor). This is a destructive action that requires approval.',
+    parameters: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Client name' },
+        type: { type: 'string', description: 'Client type: customer or vendor' },
+        taxId: { type: 'string', description: 'Tax identification number' },
+        billingAddress: {
+          type: 'object',
+          description: 'Billing address',
+          properties: {
+            street: { type: 'string' },
+            city: { type: 'string' },
+            state: { type: 'string' },
+            zip: { type: 'string' },
+            country: { type: 'string' },
+          },
+        },
+        currency: { type: 'string', description: 'Currency code (e.g. USD, EUR)' },
+        paymentTerms: { type: 'string', description: 'Payment terms (e.g. net_30, net_60)' },
+      },
+      required: ['name', 'type'],
+    },
+    requiredPermission: 'erp:clients:create',
+    isDestructive: true,
+    handler: async (db, orgId, args) => {
+      return createClient(db, orgId, args);
+    },
+  },
+  {
+    key: 'erp_create_inventory_item',
+    name: 'create_inventory_item',
+    description: 'Create a new inventory item. This is a destructive action that requires approval.',
+    parameters: {
+      type: 'object',
+      properties: {
+        sku: { type: 'string', description: 'Stock keeping unit code' },
+        name: { type: 'string', description: 'Item name' },
+        type: { type: 'string', description: 'Item type (e.g. product, service, material)' },
+        unit: { type: 'string', description: 'Unit of measure (e.g. pc, kg, hr)' },
+        unitPrice: { type: 'number', description: 'Selling unit price' },
+        costPrice: { type: 'number', description: 'Cost price' },
+        taxRate: { type: 'number', description: 'Default tax rate percentage' },
+      },
+      required: ['sku', 'name'],
+    },
+    requiredPermission: 'erp:inventory:create',
+    isDestructive: true,
+    handler: async (db, orgId, args) => {
+      return createItem(db, orgId, args);
     },
   },
 ];
