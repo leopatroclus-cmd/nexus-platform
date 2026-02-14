@@ -9,9 +9,40 @@ import * as paymentsSvc from './services/payments.service.js';
 import * as ledgerSvc from './services/ledger.service.js';
 import * as coaSvc from './services/chart-of-accounts.service.js';
 import * as pricelistsSvc from './services/pricelists.service.js';
+import * as restAnalyticsSvc from './services/erp-rest-analytics.service.js';
+import * as erpAnalyticsSvc from './services/erp-analytics.service.js';
 
 export function createErpRouter(db: Database): Router {
   const router = Router();
+
+  // ─── Analytics ───
+  router.get('/analytics/dashboard', async (req, res, next) => {
+    try {
+      const data = await restAnalyticsSvc.getDashboardSummary(db, req.orgId!);
+      res.json({ success: true, data });
+    } catch (e) { next(e); }
+  });
+
+  router.get('/analytics/revenue', async (req, res, next) => {
+    try {
+      const data = await restAnalyticsSvc.getRevenueTimeSeries(db, req.orgId!, {
+        groupBy: (req.query.groupBy as 'day' | 'week' | 'month') || 'month',
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+      });
+      res.json({ success: true, data });
+    } catch (e) { next(e); }
+  });
+
+  router.get('/analytics/invoices', async (req, res, next) => {
+    try {
+      const mode = (req.query.mode as string) || 'status_summary';
+      const data = await erpAnalyticsSvc.getInvoiceAnalytics(db, req.orgId!, {
+        mode: mode as 'outstanding' | 'overdue' | 'status_summary',
+      });
+      res.json({ success: true, data });
+    } catch (e) { next(e); }
+  });
 
   // ─── Clients ───
   router.get('/clients', async (req, res, next) => {
