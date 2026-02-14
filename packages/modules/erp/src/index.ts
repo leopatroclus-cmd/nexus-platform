@@ -42,6 +42,7 @@ export const erpManifest: ModuleManifest = {
     { label: 'Invoices', icon: 'FileText', path: '/erp/invoices' },
     { label: 'Payments', icon: 'CreditCard', path: '/erp/payments' },
     { label: 'Ledger', icon: 'BookOpen', path: '/erp/ledger' },
+    { label: 'Import Data', icon: 'Upload', path: '/erp/import' },
   ],
   entityTypes: [
     { key: 'erp_client', label: 'Client', pluralLabel: 'Clients', supportsCustomFields: true, supportsNotes: true, supportsChat: true },

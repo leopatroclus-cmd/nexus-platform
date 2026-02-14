@@ -12,6 +12,7 @@ import * as coaSvc from './services/chart-of-accounts.service.js';
 import * as pricelistsSvc from './services/pricelists.service.js';
 import * as restAnalyticsSvc from './services/erp-rest-analytics.service.js';
 import * as erpAnalyticsSvc from './services/erp-analytics.service.js';
+import { createImportRouter } from './import.routes.js';
 
 export function createErpRouter(db: Database): Router {
   const router = Router();
@@ -396,6 +397,9 @@ export function createErpRouter(db: Database): Router {
       res.json({ success: true, message: 'Pricelist deleted' });
     } catch (e) { next(e); }
   });
+
+  // ─── Import / Migration ───
+  router.use('/import', createImportRouter(db));
 
   return router;
 }

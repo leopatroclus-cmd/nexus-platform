@@ -36,6 +36,13 @@
       "when": 1771098129285,
       "tag": "0004_natural_speed",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1771100112055,
+      "tag": "0005_chunky_vermin",
+      "breakpoints": true
     }
   ]
 }

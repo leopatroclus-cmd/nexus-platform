@@ -1,4 +1,5 @@
 import { pgTable, uuid, varchar, text, boolean, timestamp, jsonb, integer, uniqueIndex, index } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 // ─── Organizations ───
 export const organizations = pgTable('organizations', {
@@ -145,4 +146,24 @@ export const orgSequences = pgTable('org_sequences', {
   currentValue: integer('current_value').notNull().default(0),
 }, (table) => [
   uniqueIndex('org_sequences_org_entity_idx').on(table.orgId, table.entityType),
+]);
+
+// ─── Import Jobs ───
+export const importJobs = pgTable('import_jobs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orgId: uuid('org_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  entityType: varchar('entity_type', { length: 50 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('pending'),
+  fileName: varchar('file_name', { length: 255 }).notNull(),
+  rawData: text('raw_data'),
+  mapping: jsonb('mapping'),
+  totalRows: integer('total_rows').notNull().default(0),
+  processedRows: integer('processed_rows').notNull().default(0),
+  importedRows: integer('imported_rows').notNull().default(0),
+  errors: jsonb('errors').default(sql`'[]'::jsonb`),
+  createdIds: jsonb('created_ids').default(sql`'[]'::jsonb`),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index('import_jobs_org_idx').on(table.orgId),
 ]);
