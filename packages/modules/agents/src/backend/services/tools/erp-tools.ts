@@ -1,5 +1,5 @@
 import type { Tool } from './types.js';
-import { listClients, getClientById, createClient } from '@nexus/module-erp/services/clients.service.js';
+import { listClients, getClientById, createClient, getClientStatement } from '@nexus/module-erp/services/clients.service.js';
 import { listInventory, getItemById, createItem } from '@nexus/module-erp/services/inventory.service.js';
 import { listOrders, getOrderById, createOrder } from '@nexus/module-erp/services/orders.service.js';
 import { listInvoices, getInvoiceById, createInvoice, updateStatus } from '@nexus/module-erp/services/invoices.service.js';
@@ -388,6 +388,28 @@ export const erpTools: Tool[] = [
     isDestructive: true,
     handler: async (db, orgId, args) => {
       return createItem(db, orgId, args);
+    },
+  },
+  {
+    key: 'erp_get_client_statement',
+    name: 'get_client_statement',
+    description: 'Get a client\'s account statement showing all invoices and payments with running balance. Useful for answering "what\'s their balance" or "show me their transaction history".',
+    parameters: {
+      type: 'object',
+      properties: {
+        clientId: { type: 'string', description: 'The client ID' },
+        startDate: { type: 'string', description: 'Optional start date filter in ISO format' },
+        endDate: { type: 'string', description: 'Optional end date filter in ISO format' },
+      },
+      required: ['clientId'],
+    },
+    requiredPermission: 'erp:clients:read',
+    isDestructive: false,
+    handler: async (db, orgId, args) => {
+      return getClientStatement(db, orgId, args.clientId as string, {
+        startDate: args.startDate ? new Date(args.startDate as string) : undefined,
+        endDate: args.endDate ? new Date(args.endDate as string) : undefined,
+      });
     },
   },
 ];
