@@ -10,10 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, AlertTriangle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
 import { formatCurrency } from '@nexus/utils';
 
 export default function InventoryPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ sku: '', name: '', type: 'product', unit: 'unit', unitPrice: '', costPrice: '', taxRate: '0', quantityOnHand: '0', reorderLevel: '0' });
@@ -164,7 +166,7 @@ export default function InventoryPage() {
 
       {/* Data Table */}
       <div className="rounded-xl border border-border/60">
-        <DataTable columns={columns} data={items} />
+        <DataTable columns={columns} data={items} onRowClick={(row: any) => router.push(`/erp/inventory/${row.id}`)} />
       </div>
 
       {/* Pagination */}

@@ -10,10 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, ArrowRightLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
 import { CustomFieldsRenderer } from '@/components/custom-fields-renderer';
 
 export default function ClientsPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [showConvert, setShowConvert] = useState(false);
@@ -203,7 +205,7 @@ export default function ClientsPage() {
 
       {/* Data Table */}
       <div className="rounded-xl border border-border/60">
-        <DataTable columns={columns} data={items} />
+        <DataTable columns={columns} data={items} onRowClick={(row: any) => router.push(`/erp/clients/${row.id}`)} />
       </div>
 
       {/* Pagination */}

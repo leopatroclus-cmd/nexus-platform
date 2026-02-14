@@ -31,10 +31,17 @@ export const crmManifest: ModuleManifest = {
     { code: 'crm:deal_stages:manage', module: 'crm', resource: 'deal_stages', action: 'manage', description: 'Manage pipeline' },
   ],
   navigation: [
-    { label: 'Contacts', icon: 'Users', path: '/crm/contacts' },
-    { label: 'Companies', icon: 'Building2', path: '/crm/companies' },
-    { label: 'Deals', icon: 'Handshake', path: '/crm/deals' },
-    { label: 'Activities', icon: 'CalendarCheck', path: '/crm/activities' },
+    {
+      label: 'CRM',
+      icon: 'Handshake',
+      path: '/crm',
+      children: [
+        { label: 'Contacts', icon: 'Users', path: '/crm/contacts' },
+        { label: 'Companies', icon: 'Building2', path: '/crm/companies' },
+        { label: 'Deals', icon: 'Handshake', path: '/crm/deals' },
+        { label: 'Activities', icon: 'CalendarCheck', path: '/crm/activities' },
+      ],
+    },
   ],
   entityTypes: [
     { key: 'crm_contact', label: 'Contact', pluralLabel: 'Contacts', supportsCustomFields: true, supportsNotes: true, supportsActivities: true, supportsChat: true },

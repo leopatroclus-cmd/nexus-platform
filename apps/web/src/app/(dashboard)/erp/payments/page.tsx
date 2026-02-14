@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
@@ -7,6 +8,7 @@ import { usePaginatedQuery } from '@/hooks/use-paginated-query';
 import { formatCurrency } from '@nexus/utils';
 
 export default function PaymentsPage() {
+  const router = useRouter();
   const { items, pagination, page, setPage } = usePaginatedQuery('erp-payments', '/erp/payments');
 
   const columns = [
@@ -49,7 +51,7 @@ export default function PaymentsPage() {
 
       {/* Data Table */}
       <div className="rounded-xl border border-border/60">
-        <DataTable columns={columns} data={items} />
+        <DataTable columns={columns} data={items} onRowClick={(row: any) => router.push(`/erp/payments/${row.id}`)} />
       </div>
 
       {/* Pagination */}
