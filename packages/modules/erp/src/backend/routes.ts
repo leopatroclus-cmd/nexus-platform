@@ -5,6 +5,7 @@ import * as clientsSvc from './services/clients.service.js';
 import * as inventorySvc from './services/inventory.service.js';
 import * as ordersSvc from './services/orders.service.js';
 import * as invoicesSvc from './services/invoices.service.js';
+import * as invoicePdfSvc from './services/invoice-pdf.service.js';
 import * as paymentsSvc from './services/payments.service.js';
 import * as ledgerSvc from './services/ledger.service.js';
 import * as coaSvc from './services/chart-of-accounts.service.js';
@@ -252,6 +253,18 @@ export function createErpRouter(db: Database): Router {
       await invoicesSvc.deleteInvoice(db, req.orgId!, req.params.id);
       res.json({ success: true, message: 'Invoice deleted' });
     } catch (e) { next(e); }
+  });
+
+  router.get('/invoices/:id/pdf', async (req, res, next) => {
+    try {
+      const { buffer, invoiceNumber } = await invoicePdfSvc.generateInvoicePdf(db, req.orgId!, req.params.id);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${invoiceNumber}.pdf"`);
+      res.send(buffer);
+    } catch (e: any) {
+      if (e.message === 'Invoice not found') return res.status(404).json({ success: false, error: 'Invoice not found' });
+      next(e);
+    }
   });
 
   // ─── Payments ───

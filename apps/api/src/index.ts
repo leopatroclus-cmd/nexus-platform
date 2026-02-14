@@ -19,7 +19,6 @@ import authRoutes from './routes/auth.routes.js';
 import orgRoutes from './routes/org.routes.js';
 import rolesRoutes from './routes/roles.routes.js';
 import customFieldsRoutes from './routes/custom-fields.routes.js';
-import { generateInvoicePdf } from './services/invoice-pdf.service.js';
 import { globalSearch } from './services/search.service.js';
 import { getDashboardStats } from './services/dashboard.service.js';
 import analyticsRoutes from './routes/analytics.routes.js';
@@ -100,16 +99,6 @@ app.get('/api/search', authMiddleware, tenantMiddleware, async (req, res, next) 
   try {
     const results = await globalSearch(req.orgId!, req.query.q as string, parseInt(req.query.limit as string) || 10);
     res.json({ success: true, data: results });
-  } catch (e) { next(e); }
-});
-
-// ─── Invoice PDF ───
-app.get('/api/erp/invoices/:id/pdf', authMiddleware, tenantMiddleware, async (req, res, next) => {
-  try {
-    const pdf = await generateInvoicePdf(req.orgId!, req.params.id as string);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="invoice-${req.params.id}.pdf"`);
-    res.send(pdf);
   } catch (e) { next(e); }
 });
 
