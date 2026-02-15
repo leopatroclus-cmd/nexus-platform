@@ -43,8 +43,7 @@ export default function OrdersPage() {
 
   const { data: clients } = useQuery({
     queryKey: ['erp-clients-list'],
-    queryFn: async () => { const { data } = await api.get('/erp/clients?limit=100'); return data.data; },
-    enabled: showForm,
+    queryFn: async () => { const { data } = await api.get('/erp/clients?limit=200'); return data.data; },
   });
 
   const { data: inventory } = useQuery({

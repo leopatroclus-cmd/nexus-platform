@@ -1,6 +1,9 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
@@ -11,8 +14,24 @@ export default function PaymentsPage() {
   const router = useRouter();
   const { items, pagination, page, setPage } = usePaginatedQuery('erp-payments', '/erp/payments');
 
+  const { data: clients } = useQuery({
+    queryKey: ['erp-clients-list'],
+    queryFn: async () => { const { data } = await api.get('/erp/clients?limit=200'); return data.data; },
+  });
+
+  const clientMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    clients?.forEach((c: any) => { map[c.id] = c.name; });
+    return map;
+  }, [clients]);
+
   const columns = [
     { accessorKey: 'paymentNumber', header: 'Payment #' },
+    {
+      accessorKey: 'clientId',
+      header: 'Client',
+      cell: ({ row }: any) => row.original.clientId ? clientMap[row.original.clientId] || '\u2014' : '\u2014',
+    },
     {
       accessorKey: 'amount',
       header: 'Amount',
