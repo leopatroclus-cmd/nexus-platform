@@ -178,7 +178,7 @@ function PieChartComponent({ rows, labelKey, valueKey, height }: Omit<SubChartPr
 
 function StatCard({ data, compact }: { data: unknown; compact?: boolean }) {
   const obj = (typeof data === 'object' && data !== null ? data : {}) as Record<string, unknown>;
-  const entries = Object.entries(obj).filter(([, v]) => typeof v === 'number' || typeof v === 'string');
+  const entries = Object.entries(obj).filter(([k, v]) => (typeof v === 'number' || typeof v === 'string') && k !== 'mode');
 
   return (
     <div className={`grid gap-4 ${compact ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
