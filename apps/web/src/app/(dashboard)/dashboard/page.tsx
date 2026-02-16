@@ -1,25 +1,20 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Users, Building2, Handshake, TrendingUp, AlertTriangle, Package, Bot, MessageSquare, ArrowUpRight, BarChart3, Pin } from 'lucide-react';
-import { useAnalyticsQuery } from '@/hooks/use-analytics-query';
-import { AnalyticsPromptBar } from '@/components/analytics/analytics-prompt-bar';
-import { AnalyticsChartCard } from '@/components/analytics/analytics-chart-card';
 import { PinnedChartCard } from '@/components/analytics/pinned-chart-card';
 import type { PinnedChart } from '@/components/analytics/pinned-chart-card';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const stageColors = ['bg-blue-500', 'bg-indigo-500', 'bg-violet-500', 'bg-amber-500', 'bg-emerald-500', 'bg-rose-500'];
 
 export default function DashboardPage() {
   const queryClient = useQueryClient();
   const { org, user } = useAuthStore();
-  const { sendQuery, isLoading: analyticsLoading, results: analyticsResults } = useAnalyticsQuery();
 
   const { data: pinnedCharts } = useQuery({
     queryKey: ['pinned-charts'],
@@ -27,19 +22,6 @@ export default function DashboardPage() {
       const { data } = await api.get('/analytics/pins');
       return data.data as PinnedChart[];
     },
-  });
-
-  const pinMutation = useMutation({
-    mutationFn: (result: any) =>
-      api.post('/analytics/pins', {
-        query: result.query,
-        toolName: result.toolName,
-        toolArgs: result.toolArgs,
-        resultData: result.data,
-        chartType: result.chartType,
-        title: result.query,
-      }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pinned-charts'] }),
   });
 
   const unpinMutation = useMutation({
@@ -246,32 +228,21 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* AI Analytics Section */}
+      {/* Pinned Analytics */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
               <BarChart3 className="h-4 w-4 text-primary" />
             </div>
-            <CardTitle>AI Analytics</CardTitle>
+            <CardTitle>Analytics</CardTitle>
           </div>
           <Link href="/analytics" className="text-sm text-primary hover:underline flex items-center gap-1">
             View all <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
         </CardHeader>
-        <CardContent className="space-y-5">
-          <AnalyticsPromptBar onSubmit={sendQuery} isLoading={analyticsLoading} placeholder='Quick insight... e.g. "Top products this quarter"' />
-
-          {analyticsResults.length > 0 && (
-            <AnalyticsChartCard
-              result={analyticsResults[analyticsResults.length - 1]}
-              compact
-              onPin={(r) => pinMutation.mutate(r)}
-              isPinning={pinMutation.isPending}
-            />
-          )}
-
-          {pinnedCharts && pinnedCharts.length > 0 && (
+        <CardContent>
+          {pinnedCharts && pinnedCharts.length > 0 ? (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Pin className="h-3.5 w-3.5 text-primary" />
@@ -288,6 +259,14 @@ export default function DashboardPage() {
                   />
                 ))}
               </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+              <BarChart3 className="h-10 w-10 text-muted-foreground/30 mb-3" />
+              <p className="text-sm text-muted-foreground">No pinned charts yet</p>
+              <Link href="/analytics" className="text-sm text-primary mt-1 hover:underline">
+                Browse analytics catalog
+              </Link>
             </div>
           )}
         </CardContent>

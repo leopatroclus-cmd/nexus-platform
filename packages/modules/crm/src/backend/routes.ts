@@ -7,9 +7,25 @@ import * as dealsSvc from './services/deals.service.js';
 import * as dealStagesSvc from './services/deal-stages.service.js';
 import * as activitiesSvc from './services/activities.service.js';
 import * as notesSvc from './services/notes.service.js';
+import * as crmAnalyticsSvc from './services/crm-analytics.service.js';
 
 export function createCrmRouter(db: Database): Router {
   const router = Router();
+
+  // ─── Analytics ───
+  router.get('/analytics/deal-pipeline', async (req, res, next) => {
+    try {
+      const data = await crmAnalyticsSvc.getDealPipelineAnalytics(db, req.orgId!, {
+        pipelineName: req.query.pipelineName as string,
+        ownerId: req.query.ownerId as string,
+        expectedCloseStart: req.query.expectedCloseStart as string,
+        expectedCloseEnd: req.query.expectedCloseEnd as string,
+        includeWon: req.query.includeWon === 'true',
+        includeLost: req.query.includeLost === 'true',
+      });
+      res.json({ success: true, data });
+    } catch (e) { next(e); }
+  });
 
   // ─── Contacts ───
   router.get('/contacts', async (req, res, next) => {

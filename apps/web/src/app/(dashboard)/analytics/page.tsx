@@ -1,19 +1,21 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { useAnalyticsQuery } from '@/hooks/use-analytics-query';
-import { AnalyticsPromptBar } from '@/components/analytics/analytics-prompt-bar';
-import { AnalyticsChartCard } from '@/components/analytics/analytics-chart-card';
-import type { AnalyticsResult } from '@/components/analytics/analytics-chart-card';
 import { PinnedChartCard } from '@/components/analytics/pinned-chart-card';
 import type { PinnedChart } from '@/components/analytics/pinned-chart-card';
-import { BarChart3, Pin, AlertTriangle } from 'lucide-react';
+import { CatalogChartCard } from '@/components/analytics/catalog-chart-card';
+import { ChartCatalogGrid } from '@/components/analytics/chart-catalog-grid';
+import type { ChartDefinition } from '@/components/analytics/chart-catalog';
+import { CHART_CATALOG } from '@/components/analytics/chart-catalog';
+import { BarChart3, Pin } from 'lucide-react';
 
 export default function AnalyticsPage() {
   const queryClient = useQueryClient();
-  const { sendQuery, isLoading, error, results } = useAnalyticsQuery();
+  const [activeCharts, setActiveCharts] = useState<ChartDefinition[]>([]);
 
+  // ─── Pinned charts ───
   const { data: pinnedCharts } = useQuery({
     queryKey: ['pinned-charts'],
     queryFn: async () => {
@@ -23,14 +25,14 @@ export default function AnalyticsPage() {
   });
 
   const pinMutation = useMutation({
-    mutationFn: (result: AnalyticsResult) =>
+    mutationFn: (payload: { chart: ChartDefinition; data: unknown }) =>
       api.post('/analytics/pins', {
-        query: result.query,
-        toolName: result.toolName,
-        toolArgs: result.toolArgs,
-        resultData: result.data,
-        chartType: result.chartType,
-        title: result.query,
+        query: payload.chart.title,
+        toolName: payload.chart.id,
+        toolArgs: payload.chart.defaultParams,
+        resultData: payload.data,
+        chartType: payload.chart.chartType,
+        title: payload.chart.title,
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pinned-charts'] }),
   });
@@ -39,6 +41,29 @@ export default function AnalyticsPage() {
     mutationFn: (pinId: string) => api.delete(`/analytics/pins/${pinId}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pinned-charts'] }),
   });
+
+  // ─── Active charts management ───
+  const activeChartIds = new Set(activeCharts.map((c) => c.id));
+
+  const handleSelectChart = useCallback((chart: ChartDefinition) => {
+    setActiveCharts((prev) => {
+      if (prev.some((c) => c.id === chart.id)) {
+        return prev.filter((c) => c.id !== chart.id);
+      }
+      return [...prev, chart];
+    });
+  }, []);
+
+  const handleRemoveChart = useCallback((chartId: string) => {
+    setActiveCharts((prev) => prev.filter((c) => c.id !== chartId));
+  }, []);
+
+  const handlePinChart = useCallback(
+    (chart: ChartDefinition, data: unknown) => {
+      pinMutation.mutate({ chart, data });
+    },
+    [pinMutation],
+  );
 
   return (
     <div className="space-y-8">
@@ -51,37 +76,9 @@ export default function AnalyticsPage() {
           <h1 className="font-serif text-3xl">Analytics</h1>
         </div>
         <p className="text-muted-foreground mt-1 ml-[52px]">
-          Ask questions about your data and get instant visual insights
+          Browse charts and pin your favorites to the dashboard
         </p>
       </div>
-
-      {/* Prompt bar */}
-      <AnalyticsPromptBar onSubmit={sendQuery} isLoading={isLoading} />
-
-      {/* Error */}
-      {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-destructive/20 bg-destructive/5 p-4">
-          <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
-          <p className="text-sm text-destructive">{error}</p>
-        </div>
-      )}
-
-      {/* Live results */}
-      {results.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="font-serif text-lg">Results</h2>
-          <div className="grid gap-5 lg:grid-cols-2">
-            {results.map((result) => (
-              <AnalyticsChartCard
-                key={result.id}
-                result={result}
-                onPin={(r) => pinMutation.mutate(r)}
-                isPinning={pinMutation.isPending}
-              />
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Pinned charts */}
       {pinnedCharts && pinnedCharts.length > 0 && (
@@ -103,15 +100,39 @@ export default function AnalyticsPage() {
         </div>
       )}
 
+      {/* Active charts */}
+      {activeCharts.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="font-serif text-lg">Active Charts</h2>
+          <div className="grid gap-5 lg:grid-cols-2">
+            {activeCharts.map((chart) => (
+              <CatalogChartCard
+                key={chart.id}
+                chart={chart}
+                onPin={handlePinChart}
+                isPinning={pinMutation.isPending}
+                onRemove={handleRemoveChart}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Chart Catalog */}
+      <div className="space-y-4">
+        <h2 className="font-serif text-lg">Chart Catalog</h2>
+        <ChartCatalogGrid activeChartIds={activeChartIds} onSelect={handleSelectChart} />
+      </div>
+
       {/* Empty state */}
-      {results.length === 0 && (!pinnedCharts || pinnedCharts.length === 0) && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
+      {activeCharts.length === 0 && (!pinnedCharts || pinnedCharts.length === 0) && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary/50 mb-4">
             <BarChart3 className="h-8 w-8 text-muted-foreground/40" />
           </div>
-          <p className="font-serif text-lg">No analytics yet</p>
+          <p className="font-serif text-lg">Select a chart to get started</p>
           <p className="text-sm text-muted-foreground mt-1 max-w-md">
-            Try asking something like &ldquo;Show me revenue by month&rdquo; or &ldquo;What are our top products?&rdquo;
+            Click any chart above to visualize your data, then pin your favorites for quick access.
           </p>
         </div>
       )}

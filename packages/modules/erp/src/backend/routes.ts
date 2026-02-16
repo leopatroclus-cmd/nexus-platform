@@ -46,6 +46,51 @@ export function createErpRouter(db: Database): Router {
     } catch (e) { next(e); }
   });
 
+  router.get('/analytics/top-products', async (req, res, next) => {
+    try {
+      const data = await erpAnalyticsSvc.getTopProducts(db, req.orgId!, {
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        metric: (req.query.metric as 'quantity' | 'revenue') || 'quantity',
+        limit: parseInt(req.query.limit as string) || 10,
+      });
+      res.json({ success: true, data });
+    } catch (e) { next(e); }
+  });
+
+  router.get('/analytics/payments', async (req, res, next) => {
+    try {
+      const data = await erpAnalyticsSvc.getPaymentAnalytics(db, req.orgId!, {
+        groupBy: (req.query.groupBy as 'method' | 'month' | 'client') || 'month',
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+      });
+      res.json({ success: true, data });
+    } catch (e) { next(e); }
+  });
+
+  router.get('/analytics/inventory', async (req, res, next) => {
+    try {
+      const mode = (req.query.mode as string) || 'valuation';
+      const data = await erpAnalyticsSvc.getInventoryAnalytics(db, req.orgId!, {
+        mode: mode as 'low_stock' | 'valuation' | 'top_by_value',
+        limit: parseInt(req.query.limit as string) || 10,
+      });
+      res.json({ success: true, data });
+    } catch (e) { next(e); }
+  });
+
+  router.get('/analytics/revenue-breakdown', async (req, res, next) => {
+    try {
+      const data = await erpAnalyticsSvc.getRevenueAnalytics(db, req.orgId!, {
+        groupBy: (req.query.groupBy as 'client' | 'month' | 'quarter') || 'client',
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+      });
+      res.json({ success: true, data });
+    } catch (e) { next(e); }
+  });
+
   // ─── Clients ───
   router.get('/clients', async (req, res, next) => {
     try {
