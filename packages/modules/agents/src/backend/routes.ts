@@ -82,7 +82,19 @@ export function createAgentsRouter(db: Database, emit?: EmitFn, encryptionKey?: 
   // ─── List agents ───
   router.get('/', async (req, res, next) => {
     try {
-      const data = await db.select().from(agents).where(eq(agents.orgId, req.orgId!)).orderBy(desc(agents.createdAt));
+      const rows = await db.select().from(agents).where(eq(agents.orgId, req.orgId!)).orderBy(desc(agents.createdAt));
+      if (rows.length === 0) return res.json({ success: true, data: [] });
+
+      const agentIds = new Set(rows.map(a => a.id));
+      const toolRows = await db.select({ agentId: agentTools.agentId, toolKey: agentTools.toolKey }).from(agentTools);
+      const toolsByAgent = new Map<string, string[]>();
+      for (const t of toolRows) {
+        if (!agentIds.has(t.agentId)) continue;
+        const arr = toolsByAgent.get(t.agentId) || [];
+        arr.push(t.toolKey);
+        toolsByAgent.set(t.agentId, arr);
+      }
+      const data = rows.map(a => ({ ...a, tools: toolsByAgent.get(a.id) || [] }));
       res.json({ success: true, data });
     } catch (e) { next(e); }
   });

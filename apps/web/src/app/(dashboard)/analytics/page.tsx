@@ -8,11 +8,11 @@ import { AnalyticsChartCard } from '@/components/analytics/analytics-chart-card'
 import type { AnalyticsResult } from '@/components/analytics/analytics-chart-card';
 import { PinnedChartCard } from '@/components/analytics/pinned-chart-card';
 import type { PinnedChart } from '@/components/analytics/pinned-chart-card';
-import { BarChart3, Pin } from 'lucide-react';
+import { BarChart3, Pin, AlertTriangle } from 'lucide-react';
 
 export default function AnalyticsPage() {
   const queryClient = useQueryClient();
-  const { sendQuery, isLoading, results } = useAnalyticsQuery();
+  const { sendQuery, isLoading, error, results } = useAnalyticsQuery();
 
   const { data: pinnedCharts } = useQuery({
     queryKey: ['pinned-charts'],
@@ -57,6 +57,14 @@ export default function AnalyticsPage() {
 
       {/* Prompt bar */}
       <AnalyticsPromptBar onSubmit={sendQuery} isLoading={isLoading} />
+
+      {/* Error */}
+      {error && (
+        <div className="flex items-center gap-3 rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+          <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+          <p className="text-sm text-destructive">{error}</p>
+        </div>
+      )}
 
       {/* Live results */}
       {results.length > 0 && (

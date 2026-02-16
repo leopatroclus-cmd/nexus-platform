@@ -11,6 +11,7 @@ export function useAnalyticsQuery() {
   const { joinConversation, onEvent } = useSocket();
   const { conversationId, setConversationId } = useAnalyticsStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<AnalyticsResult[]>([]);
 
   // Track pending tool results to pair with message-stream completion
@@ -91,20 +92,37 @@ export function useAnalyticsQuery() {
     const convId = convRes.data.id;
     setConversationId(convId);
 
-    // Add an analytics-capable agent as participant
+    // Find or auto-create an analytics-capable agent
+    const analyticsToolKeys = [
+      'erp_revenue_analytics', 'erp_top_products', 'erp_invoice_analytics',
+      'erp_payment_analytics', 'erp_inventory_analytics', 'crm_deal_analytics',
+    ];
+
     const { data: agentsRes } = await api.get('/agents');
-    const analyticsAgent = agentsRes.data?.find((a: any) =>
-      a.status === 'active' && a.tools?.some((t: string) =>
-        ['revenue_analytics', 'top_products', 'invoice_analytics', 'payment_analytics', 'inventory_analytics', 'deal_pipeline_analytics'].includes(t)
-      )
+    let analyticsAgent = agentsRes.data?.find((a: any) =>
+      a.status === 'active' && a.tools?.some((t: string) => analyticsToolKeys.includes(t))
     );
 
-    if (analyticsAgent) {
-      await api.post(`/chat/conversations/${convId}/participants`, {
-        participantType: 'agent',
-        participantId: analyticsAgent.id,
+    if (!analyticsAgent) {
+      // Auto-provision an analytics agent
+      const { data: createRes } = await api.post('/agents', {
+        name: 'Nexus Analytics',
+        description: 'Built-in analytics agent for querying business data',
+        type: 'assistant',
+        config: { provider: 'anthropic', modelId: 'claude-sonnet-4-20250514' },
+      });
+      analyticsAgent = createRes.data;
+
+      // Assign all analytics tools
+      await api.put(`/agents/${analyticsAgent.id}/tools`, {
+        tools: analyticsToolKeys.map(toolKey => ({ toolKey })),
       });
     }
+
+    await api.post(`/chat/conversations/${convId}/participants`, {
+      participantType: 'agent',
+      participantId: analyticsAgent.id,
+    });
 
     joinConversation(convId);
     return convId;
@@ -112,13 +130,15 @@ export function useAnalyticsQuery() {
 
   const sendQuery = useCallback(async (query: string) => {
     setIsLoading(true);
+    setError(null);
     currentQuery.current = query;
 
     try {
       const convId = await ensureConversation();
       await api.post(`/chat/conversations/${convId}/messages`, { content: query });
-    } catch (err) {
+    } catch (err: any) {
       console.error('[useAnalyticsQuery] Error:', err);
+      setError(err.message || 'Failed to run analytics query');
       setIsLoading(false);
     }
   }, [ensureConversation]);
@@ -127,5 +147,5 @@ export function useAnalyticsQuery() {
     setResults([]);
   }, []);
 
-  return { sendQuery, isLoading, results, clearResults };
+  return { sendQuery, isLoading, error, results, clearResults };
 }

@@ -1,10 +1,12 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PinOff, Loader2 } from 'lucide-react';
-import { ChartRenderer } from './chart-renderer';
 import type { ChartType } from './chart-type-inference';
+
+const ChartRenderer = dynamic(() => import('./chart-renderer').then(m => ({ default: m.ChartRenderer })), { ssr: false });
 
 export interface PinnedChart {
   id: string;
