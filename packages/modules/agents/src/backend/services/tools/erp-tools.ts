@@ -394,7 +394,7 @@ export const erpTools: Tool[] = [
   {
     key: 'erp_get_client_statement',
     name: 'get_client_statement',
-    description: 'Get a client\'s account statement showing all invoices and payments with running balance. Useful for answering "what\'s their balance" or "show me their transaction history".',
+    description: 'Get a client\'s account statement showing all invoices and payments with running balance. For the total outstanding balance, use the "totalBalance" field (openingBalance + accountBalance). Do NOT calculate from invoices and payments manually.',
     parameters: {
       type: 'object',
       properties: {

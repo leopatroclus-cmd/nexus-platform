@@ -148,6 +148,8 @@ export async function getClientStatement(
     client: { id: client.id, name: client.name, type: client.type, currency: client.currency },
     transactions,
     openingBalance: effectiveOpening,
+    accountBalance: parseFloat(client.accountBalance || '0'),
+    totalBalance: effectiveOpening + parseFloat(client.accountBalance || '0'),
     closingBalance: Math.round(balance * 100) / 100,
     totalInvoiced: Math.round(totalInvoiced * 100) / 100,
     totalPaid: Math.round(totalPaid * 100) / 100,

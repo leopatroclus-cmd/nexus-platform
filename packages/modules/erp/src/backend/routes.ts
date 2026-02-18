@@ -110,6 +110,17 @@ export function createErpRouter(db: Database): Router {
     } catch (e) { next(e); }
   });
 
+  router.get('/clients/:id/statement', async (req, res, next) => {
+    try {
+      const statement = await clientsSvc.getClientStatement(db, req.orgId!, req.params.id, {
+        startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
+        endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
+      });
+      if (!statement) return res.status(404).json({ success: false, error: 'Client not found' });
+      res.json({ success: true, data: statement });
+    } catch (e) { next(e); }
+  });
+
   router.post('/clients', async (req, res, next) => {
     try {
       const client = await clientsSvc.createClient(db, req.orgId!, req.body);
