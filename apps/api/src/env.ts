@@ -9,6 +9,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   REDIS_URL: z.string().default('redis://localhost:6379'),
   ENCRYPTION_KEY: z.string().min(32),
+  INTERNAL_API_TOKEN: z.string().optional(),
+  INTERNAL_ORG_ID: z.string().uuid().optional(),
 });
 
 function loadEnv() {

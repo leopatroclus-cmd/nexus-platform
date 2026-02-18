@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageSquare, X, Send, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { api } from '@/lib/api';
+import { useAuthStore } from '@/stores/auth';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -37,13 +39,15 @@ export function OpenClawChat() {
     setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
     try {
-      const res = await fetch('http://127.0.0.1:18789/hooks', {
+      const token = useAuthStore.getState().accessToken;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+      const res = await fetch(`${apiUrl}/chat`, {
         method: 'POST',
         headers: {
-          Authorization: 'Bearer nexus-webhook-secret',
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, stream: true }),
       });
 
       if (!res.ok) {
@@ -59,7 +63,22 @@ export function OpenClawChat() {
           const { done, value } = await reader.read();
           if (done) break;
           accumulated += decoder.decode(value, { stream: true });
-          const content = accumulated;
+          
+          // Parse SSE format: data: {...}
+          const lines = accumulated.split('\n');
+          let content = '';
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+              try {
+                const parsed = JSON.parse(data);
+                content += parsed.choices?.[0]?.delta?.content || '';
+              } catch {
+                // Skip malformed
+              }
+            }
+          }
           setMessages((prev) =>
             prev.map((m, i) => (i === assistantIdx ? { ...m, content } : m)),
           );
@@ -103,7 +122,7 @@ export function OpenClawChat() {
           <CardHeader className="border-b border-border/60 py-3 px-4 flex-shrink-0">
             <CardTitle className="font-serif text-base flex items-center gap-2">
               <Bot className="h-4 w-4 text-primary" />
-              OpenClaw
+              Patroclus
             </CardTitle>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">

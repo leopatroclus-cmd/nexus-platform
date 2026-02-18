@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../lib/jwt.js';
 import { UnauthorizedError } from '../lib/errors.js';
+import { env } from '../env.js';
 
 declare global {
   namespace Express {
@@ -21,6 +22,18 @@ export async function authMiddleware(req: Request, _res: Response, next: NextFun
     }
 
     const token = authHeader.slice(7);
+
+    // Internal API token (for localhost agent callbacks)
+    if (env.INTERNAL_API_TOKEN && token === env.INTERNAL_API_TOKEN) {
+      if (!env.INTERNAL_ORG_ID) {
+        throw new UnauthorizedError('INTERNAL_ORG_ID not configured');
+      }
+      req.userId = 'internal';
+      req.orgId = env.INTERNAL_ORG_ID;
+      req.role = 'admin';
+      req.permissions = ['*'];
+      return next();
+    }
 
     // JWT auth
     const payload = verifyAccessToken(token);

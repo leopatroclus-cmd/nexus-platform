@@ -22,6 +22,7 @@ import customFieldsRoutes from './routes/custom-fields.routes.js';
 import { globalSearch } from './services/search.service.js';
 import { getDashboardStats } from './services/dashboard.service.js';
 import analyticsRoutes from './routes/analytics.routes.js';
+import chatRoutes from './routes/chat.routes.js';
 
 // Module manifests
 import { coreManifest } from '@nexus/module-core';
@@ -65,6 +66,9 @@ app.get('/api/modules/entity-types', authMiddleware, tenantMiddleware, (_req, re
 // ─── Socket.IO (init before module routes so emit is available) ───
 const io = initSocketIO(httpServer, env.CORS_ORIGIN);
 
+// ─── Chat (OpenClaw integration) ───
+app.use('/api/chat', chatRoutes);
+
 // ─── Module Routes (with module guard) ───
 const emitFn = (room: string, event: string, data: unknown) => io.to(room).emit(event, data);
 const ctx = {
@@ -79,6 +83,11 @@ for (const { key, router } of moduleRouters) {
 
 // ─── Analytics ───
 app.use('/api/analytics', authMiddleware, tenantMiddleware, analyticsRoutes);
+
+// Debug test endpoint
+app.get('/api/test', (_req, res) => {
+  res.json({ message: 'test endpoint works' });
+});
 
 // ─── Dashboard ───
 app.get('/api/dashboard', authMiddleware, tenantMiddleware, async (req, res, next) => {
