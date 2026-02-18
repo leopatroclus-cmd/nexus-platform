@@ -27,10 +27,7 @@ import analyticsRoutes from './routes/analytics.routes.js';
 import { coreManifest } from '@nexus/module-core';
 import { crmManifest } from '@nexus/module-crm';
 import { erpManifest } from '@nexus/module-erp';
-import { agentsManifest } from '@nexus/module-agents';
-import { chatManifest } from '@nexus/module-chat';
 import { emailManifest } from '@nexus/module-email';
-import { triggerAgentForConversation } from './lib/agent-trigger.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -48,8 +45,6 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, standardHeaders: true }
 registry.register(coreManifest);
 registry.register(crmManifest);
 registry.register(erpManifest);
-registry.register(agentsManifest);
-registry.register(chatManifest);
 registry.register(emailManifest);
 
 // ─── Core Routes (no module guard) ───
@@ -76,7 +71,6 @@ const ctx = {
   db: db as any,
   emit: emitFn,
   encryptionKey: env.ENCRYPTION_KEY,
-  agentTrigger: triggerAgentForConversation,
 };
 const moduleRouters = registry.createRouters(ctx);
 for (const { key, router } of moduleRouters) {

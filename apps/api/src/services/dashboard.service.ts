@@ -1,6 +1,6 @@
 import { db } from '../lib/db.js';
 import { sql, eq, and, lt, count, sum } from 'drizzle-orm';
-import { crmContacts, crmCompanies, crmDeals, crmDealStages, erpInvoices, erpInventory, agentActionsLog } from '@nexus/database';
+import { crmContacts, crmCompanies, crmDeals, crmDealStages, erpInvoices, erpInventory } from '@nexus/database';
 
 export async function getDashboardStats(orgId: string) {
   // Basic counts
@@ -45,14 +45,6 @@ export async function getDashboardStats(orgId: string) {
     ))
     .limit(10);
 
-  // Recent agent activity
-  const recentAgentActions = await db
-    .select()
-    .from(agentActionsLog)
-    .where(eq(agentActionsLog.orgId, orgId))
-    .orderBy(sql`${agentActionsLog.createdAt} DESC`)
-    .limit(5);
-
   return {
     counts: {
       contacts: contactsResult.count,
@@ -66,6 +58,5 @@ export async function getDashboardStats(orgId: string) {
       totalDue: parseFloat(String(overdueInvoices.total || '0')),
     },
     lowStockItems,
-    recentAgentActions,
   };
 }

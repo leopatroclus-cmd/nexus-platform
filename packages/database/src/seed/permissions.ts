@@ -57,20 +57,6 @@ export const SEED_PERMISSIONS = [
   { code: 'erp:ledger:read', module: 'erp', resource: 'ledger', action: 'read', description: 'View ledger entries' },
   { code: 'erp:chart_of_accounts:manage', module: 'erp', resource: 'chart_of_accounts', action: 'manage', description: 'Manage chart of accounts' },
 
-  // Agents
-  { code: 'agents:agents:read', module: 'agents', resource: 'agents', action: 'read', description: 'View agents' },
-  { code: 'agents:agents:create', module: 'agents', resource: 'agents', action: 'create', description: 'Create agents' },
-  { code: 'agents:agents:update', module: 'agents', resource: 'agents', action: 'update', description: 'Update agents' },
-  { code: 'agents:agents:delete', module: 'agents', resource: 'agents', action: 'delete', description: 'Delete agents' },
-  { code: 'agents:actions:read', module: 'agents', resource: 'actions', action: 'read', description: 'View agent action logs' },
-  { code: 'agents:actions:approve', module: 'agents', resource: 'actions', action: 'approve', description: 'Approve/reject agent actions' },
-
-  // Chat
-  { code: 'chat:conversations:read', module: 'chat', resource: 'conversations', action: 'read', description: 'View conversations' },
-  { code: 'chat:conversations:create', module: 'chat', resource: 'conversations', action: 'create', description: 'Create conversations' },
-  { code: 'chat:messages:read', module: 'chat', resource: 'messages', action: 'read', description: 'Read messages' },
-  { code: 'chat:messages:create', module: 'chat', resource: 'messages', action: 'create', description: 'Send messages' },
-
   // Email
   { code: 'email:accounts:read', module: 'email', resource: 'accounts', action: 'read', description: 'View email accounts' },
   { code: 'email:accounts:manage', module: 'email', resource: 'accounts', action: 'manage', description: 'Manage email accounts' },

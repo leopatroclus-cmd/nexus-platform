@@ -10,9 +10,7 @@
   },
   "dependencies": {
     "@nexus/database": "workspace:*",
-    "@nexus/module-agents": "workspace:*",
-    "@nexus/module-chat": "workspace:*",
-    "@nexus/module-core": "workspace:*",
+"@nexus/module-core": "workspace:*",
     "@nexus/module-crm": "workspace:*",
     "@nexus/module-email": "workspace:*",
     "@nexus/module-erp": "workspace:*",

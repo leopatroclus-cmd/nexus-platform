@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AIProvidersSection } from '@/components/settings/ai-providers-section';
 
 export default function OrgSettingsPage() {
   const { org } = useAuthStore();
@@ -85,7 +84,6 @@ export default function OrgSettingsPage() {
         </CardContent>
       </Card>
 
-      <AIProvidersSection />
     </div>
   );
 }
