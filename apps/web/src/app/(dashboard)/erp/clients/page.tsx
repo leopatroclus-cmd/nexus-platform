@@ -14,6 +14,12 @@ import { useRouter } from 'next/navigation';
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
 import { CustomFieldsRenderer } from '@/components/custom-fields-renderer';
 
+function formatCurrency(val: string | number | null | undefined, currency = 'USD') {
+  const n = Number(val);
+  if (!val || isNaN(n)) return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(0);
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);
+}
+
 export default function ClientsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -66,6 +72,15 @@ export default function ClientsPage() {
       ),
     },
     { accessorKey: 'currency', header: 'Currency' },
+    {
+      id: 'outstandingBalance',
+      header: 'Outstanding Balance',
+      cell: ({ row }: any) => {
+        const opening = Number(row.original.openingBalance) || 0;
+        const account = Number(row.original.accountBalance) || 0;
+        return formatCurrency(opening + account, row.original.currency);
+      },
+    },
     {
       accessorKey: 'pricelistId',
       header: 'Pricelist',

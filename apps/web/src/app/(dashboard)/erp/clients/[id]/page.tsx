@@ -407,7 +407,7 @@ export default function ClientDetailPage() {
                   {invoices.map((inv: any, i: number) => (
                     <Link
                       key={inv.id}
-                      href={`/erp/invoices`}
+                      href={`/erp/invoices/${inv.id}`}
                       className="border-b border-border/30 py-3 first:pt-0 last:border-0 last:pb-0 animate-fade-in flex items-center justify-between hover:bg-secondary/30 -mx-2 px-2 rounded-lg transition-colors"
                       style={{ animationDelay: `${(i + 1) * 60}ms` }}
                     >
